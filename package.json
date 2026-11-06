@@ -766,7 +766,7 @@
     "vscode-languageserver-protocol": "3.17.5",
     "vscode-languageserver-textdocument": "^1.0.15",
     "vscode-uri": "3.2.0",
-    "ws": "8.22.0",
+    "ws": "8.22.1",
     "yaml": "2.8.3",
     "yaml-language-server": "1.25.0"
   }
