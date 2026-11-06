@@ -2,6 +2,10 @@ import * as path from "path"
 import Mocha from "mocha"
 import { glob } from "glob"
 
+// Suppress SIGPIPE errors that can crash the renderer process in CI environments.
+// This happens when spawning processes that fail immediately.
+process.on("SIGPIPE", () => {})
+
 export async function run(): Promise<void> {
   // Create the Mocha test
   const mocha = new Mocha({

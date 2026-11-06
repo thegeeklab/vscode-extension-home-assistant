@@ -1,97 +1,12 @@
 import * as assert from "assert"
-import { HomeAssistantLanguageService } from "../../src/language-service/src/haLanguageService.js"
-import { CompletionItem } from "vscode-languageserver-protocol"
 import { TextDocument } from "vscode-languageserver-textdocument"
-import { IHaConnection } from "../../src/language-service/src/home-assistant/haConnection.js"
-import { HassEntities } from "home-assistant-js-websocket"
-import { HomeAssistantConfiguration } from "../../src/language-service/src/haConfig/haConfig.js"
-import { getLanguageService } from "yaml-language-server"
-import { SchemaServiceForIncludes } from "../../src/language-service/src/schemas/schemaService.js"
-
-// Mock file accessor for testing secrets
-class MockFileAccessor {
-  private secretsContent: string
-
-  constructor(secretsContent = "") {
-    this.secretsContent = secretsContent
-  }
-
-  getFileContents(path: string): string {
-    if (path === "secrets.yaml") {
-      return this.secretsContent
-    }
-    return ""
-  }
-}
-
-// Mock Home Assistant connection (simplified for secrets testing)
-class MockHaConnection implements IHaConnection {
-  private mockEntities: HassEntities = {}
-
-  async tryConnect(): Promise<void> {
-    // Mock implementation
-  }
-
-  async notifyConfigUpdate(): Promise<void> {
-    // Mock implementation
-  }
-
-  async getAreaCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getDeviceCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getDomainCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getEntityCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getFloorCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getLabelCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getServiceCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getHassEntities(): Promise<HassEntities> {
-    return this.mockEntities
-  }
-
-  async getHassDevices(): Promise<any> {
-    return {}
-  }
-
-  async getHassEntityRegistry(): Promise<any> {
-    return {}
-  }
-
-  async getHassServices(): Promise<any> {
-    return {}
-  }
-
-  async resolveEntityCompletionDocumentation(_entityId: string): Promise<any> {
-    return undefined
-  }
-}
+import { HomeAssistantLanguageService } from "../../src/language-service/src/haLanguageService.js"
+import { createMockLanguageService, MockFileAccessor, MockHaConnection } from "../helpers/mocks.js"
 
 suite("Secrets Validation Mock Tests", () => {
   let languageService: HomeAssistantLanguageService
-  let mockConnection: MockHaConnection
 
   setup(async () => {
-    mockConnection = new MockHaConnection()
-
     // Mock secrets.yaml content with some test secrets
     const mockSecretsContent = `
 # Test secrets file
@@ -102,33 +17,13 @@ mqtt_user: "homeassistant"
 mqtt_password: "mqttpass"
 `
 
-    const fileAccessor = new MockFileAccessor(mockSecretsContent)
-    const haConfig = new HomeAssistantConfiguration(fileAccessor as any)
-    const yamlLanguageService = getLanguageService({
-      schemaRequestService: async () => "",
-      workspaceContext: null,
-      telemetry: undefined
-    })
-
-    // Create language service with mock connection
-    languageService = new HomeAssistantLanguageService(
-      yamlLanguageService,
-      haConfig,
-      mockConnection as any, // Type assertion to bypass strict typing
-      [],
-      await SchemaServiceForIncludes.create(),
-      () => {
-        /* mock sendDiagnostics */
-      },
-      () => {
-        /* mock diagnoseAllFiles */
-      },
-      { isConfigured: true, autoRenderTemplates: true } as any // Mock configuration service
+    languageService = await createMockLanguageService(
+      new MockHaConnection(),
+      new MockFileAccessor(mockSecretsContent)
     )
   })
 
   test("Secrets validation identifies unknown secrets", async () => {
-    // Create a test document with both known and unknown secrets
     const testContent = `
 automation:
   - alias: "Test Secrets Validation"
@@ -165,10 +60,8 @@ script:
       testContent
     )
 
-    // Get diagnostics from language service (this will call our validation)
     const diagnostics = await languageService.getDiagnostics(document)
 
-    // Filter for secrets validation diagnostics
     const secretsDiagnostics = diagnostics.filter(
       (d) => d.source === "home-assistant" && d.code === "unknown-secret"
     )
@@ -178,14 +71,12 @@ script:
       console.log(`  - Line ${diagnostic.range.start.line + 1}: ${diagnostic.message}`)
     }
 
-    // We should have exactly 2 unknown secret diagnostics
     assert.strictEqual(
       secretsDiagnostics.length,
       2,
       `Expected 2 unknown secret diagnostics, got ${secretsDiagnostics.length}`
     )
 
-    // Check that the diagnostics are for the correct secrets
     const expectedUnknownSecrets = ["unknown_secret", "invalid_key"]
 
     const foundUnknownSecrets = secretsDiagnostics
@@ -202,7 +93,6 @@ script:
       )
     }
 
-    // Verify that known secrets don't generate diagnostics
     const knownSecrets = ["api_key", "mqtt_user", "database_password"]
     for (const knownSecret of knownSecrets) {
       assert.ok(
@@ -246,7 +136,6 @@ automation:
       console.log(`  - Line ${diagnostic.range.start.line + 1}: ${diagnostic.message}`)
     }
 
-    // Should only have 1 diagnostic for the unknown secret, not for templates
     assert.strictEqual(
       secretsDiagnostics.length,
       1,
@@ -289,7 +178,6 @@ automation:
       console.log(`  - Line ${diagnostic.range.start.line + 1}: ${diagnostic.message}`)
     }
 
-    // Should only have 1 diagnostic for the valid format unknown secret
     assert.strictEqual(
       secretsDiagnostics.length,
       1,
@@ -333,7 +221,6 @@ automation:
 
     const diagnostics = await languageService.getDiagnostics(document)
 
-    // Filter for secrets validation diagnostics
     const secretsDiagnostics = diagnostics.filter(
       (d) => d.source === "home-assistant" && d.code === "unknown-secret"
     )
@@ -345,7 +232,6 @@ automation:
       console.log(`  - Line ${diagnostic.range.start.line + 1}: ${diagnostic.message}`)
     }
 
-    // Should have no diagnostics for commented secrets
     assert.strictEqual(secretsDiagnostics.length, 0, "Should not flag secrets in commented lines")
   })
 })

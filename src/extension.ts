@@ -1,7 +1,7 @@
 import * as path from "path"
 import * as vscode from "vscode"
 import { LanguageClientOptions } from "vscode-languageclient"
-import { LanguageClient, ServerOptions, TransportKind } from "vscode-languageclient/node"
+import { LanguageClient, ServerOptions, TransportKind } from "vscode-languageclient/node.js"
 import { AuthManager } from "./auth/manager.js"
 import { AuthMiddleware } from "./auth/middleware.js"
 import { manageAuth, testConnection } from "./auth/commands.js"
@@ -472,7 +472,7 @@ export class CommandMappings {
  * Determines if the current workspace is actually a Home Assistant configuration directory
  * by checking for Home Assistant-specific indicators beyond just configuration.yaml
  */
-async function isHomeAssistantWorkspace(): Promise<boolean> {
+export async function isHomeAssistantWorkspace(): Promise<boolean> {
   const { workspaceFolders } = vscode.workspace
   if (!workspaceFolders || workspaceFolders.length === 0) {
     return false

@@ -1,154 +1,60 @@
 import * as assert from "assert"
-import { HomeAssistantLanguageService } from "../../src/language-service/src/haLanguageService.js"
-import { CompletionItem } from "vscode-languageserver-protocol"
 import { TextDocument } from "vscode-languageserver-textdocument"
-import { IHaConnection } from "../../src/language-service/src/home-assistant/haConnection.js"
-import { HassEntities } from "home-assistant-js-websocket"
-import { HomeAssistantConfiguration } from "../../src/language-service/src/haConfig/haConfig.js"
-import { getLanguageService } from "yaml-language-server"
-import { SchemaServiceForIncludes } from "../../src/language-service/src/schemas/schemaService.js"
-
-// Mock file accessor for testing
-class MockFileAccessor {
-  getFileContents(): string {
-    return ""
-  }
-}
-
-// Mock Home Assistant connection with predefined entities
-class MockHaConnection implements IHaConnection {
-  private mockEntities: HassEntities = {
-    "light.kitchen": {
-      entity_id: "light.kitchen",
-      state: "off",
-      attributes: {
-        friendly_name: "Kitchen Light"
-      },
-      last_changed: "2023-01-01T00:00:00.000Z",
-      last_updated: "2023-01-01T00:00:00.000Z",
-      context: {
-        id: "test",
-        parent_id: null,
-        user_id: null
-      }
-    },
-    "light.living_room": {
-      entity_id: "light.living_room",
-      state: "on",
-      attributes: {
-        friendly_name: "Living Room Light"
-      },
-      last_changed: "2023-01-01T00:00:00.000Z",
-      last_updated: "2023-01-01T00:00:00.000Z",
-      context: {
-        id: "test",
-        parent_id: null,
-        user_id: null
-      }
-    },
-    "binary_sensor.motion": {
-      entity_id: "binary_sensor.motion",
-      state: "off",
-      attributes: {
-        friendly_name: "Motion Sensor"
-      },
-      last_changed: "2023-01-01T00:00:00.000Z",
-      last_updated: "2023-01-01T00:00:00.000Z",
-      context: {
-        id: "test",
-        parent_id: null,
-        user_id: null
-      }
-    }
-  }
-
-  async tryConnect(): Promise<void> {
-    // Mock implementation
-  }
-
-  async notifyConfigUpdate(): Promise<void> {
-    // Mock implementation
-  }
-
-  async getAreaCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getDeviceCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getDomainCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getEntityCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getFloorCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getLabelCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getServiceCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getHassEntities(): Promise<HassEntities> {
-    return this.mockEntities
-  }
-
-  async getHassDevices(): Promise<any> {
-    return {}
-  }
-
-  async getHassEntityRegistry(): Promise<any> {
-    return {}
-  }
-
-  async getHassServices(): Promise<any> {
-    return {}
-  }
-
-  async resolveEntityCompletionDocumentation(_entityId: string): Promise<any> {
-    return undefined
-  }
-}
+import { HomeAssistantLanguageService } from "../../src/language-service/src/haLanguageService.js"
+import { createMockLanguageService, MockFileAccessor, MockHaConnection } from "../helpers/mocks.js"
 
 suite("Entity Validation with Mock Data", () => {
   let languageService: HomeAssistantLanguageService
-  let mockConnection: MockHaConnection
 
   suiteSetup(async () => {
-    // Set up mock services
-    mockConnection = new MockHaConnection()
-    const fileAccessor = new MockFileAccessor()
-    const haConfig = new HomeAssistantConfiguration(fileAccessor as any)
-    const yamlLanguageService = getLanguageService({
-      schemaRequestService: async () => "",
-      workspaceContext: null,
-      telemetry: undefined
+    const connection = new MockHaConnection({
+      entities: {
+        "light.kitchen": {
+          entity_id: "light.kitchen",
+          state: "off",
+          attributes: {
+            friendly_name: "Kitchen Light"
+          },
+          last_changed: "2023-01-01T00:00:00.000Z",
+          last_updated: "2023-01-01T00:00:00.000Z",
+          context: {
+            id: "test",
+            parent_id: null,
+            user_id: null
+          }
+        },
+        "light.living_room": {
+          entity_id: "light.living_room",
+          state: "on",
+          attributes: {
+            friendly_name: "Living Room Light"
+          },
+          last_changed: "2023-01-01T00:00:00.000Z",
+          last_updated: "2023-01-01T00:00:00.000Z",
+          context: {
+            id: "test",
+            parent_id: null,
+            user_id: null
+          }
+        },
+        "binary_sensor.motion": {
+          entity_id: "binary_sensor.motion",
+          state: "off",
+          attributes: {
+            friendly_name: "Motion Sensor"
+          },
+          last_changed: "2023-01-01T00:00:00.000Z",
+          last_updated: "2023-01-01T00:00:00.000Z",
+          context: {
+            id: "test",
+            parent_id: null,
+            user_id: null
+          }
+        }
+      }
     })
 
-    // Create language service with mock connection
-    languageService = new HomeAssistantLanguageService(
-      yamlLanguageService,
-      haConfig,
-      mockConnection as any, // Type assertion to bypass strict typing
-      [],
-      await SchemaServiceForIncludes.create(),
-      () => {
-        /* mock sendDiagnostics */
-      },
-      () => {
-        /* mock diagnoseAllFiles */
-      },
-      { isConfigured: true, autoRenderTemplates: true } as any // Mock configuration service
-    )
+    languageService = await createMockLanguageService(connection, new MockFileAccessor())
   })
 
   test("Entity validation identifies unknown entities", async () => {

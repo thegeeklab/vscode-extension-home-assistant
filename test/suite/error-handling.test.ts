@@ -145,7 +145,6 @@ script:
       await yamlFile.getScripts()
 
       // It might find some scripts, or it might not, but it shouldn't crash
-      assert.ok(true, "Parsing malformed YAML did not throw an exception")
     } catch (error) {
       assert.fail(`Parser should handle malformed YAML gracefully, but threw: ${error}`)
     }

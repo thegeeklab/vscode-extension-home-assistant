@@ -1,12 +1,13 @@
 import * as assert from "assert"
 import * as vscode from "vscode"
+import { EXTENSION_ID } from "../helpers/constants.js"
 import { waitForDiagnostics } from "../helpers/waitFor.js"
 
 // Test for issue #2786: Condition selector causes syntax check false error
 suite("Condition Selector Issue #2786", () => {
   suiteSetup(async () => {
     // Activate the extension
-    await vscode.extensions.getExtension("thegeeklab.home-assistant")?.activate()
+    await vscode.extensions.getExtension(EXTENSION_ID)?.activate()
 
     vscode.window.showInformationMessage("Starting condition selector issue #2786 tests...")
   })
@@ -42,7 +43,7 @@ automation:
 
     const document = await vscode.workspace.openTextDocument({
       content: testContent,
-      language: "yaml"
+      language: "home-assistant"
     })
 
     await vscode.window.showTextDocument(document)
@@ -117,7 +118,7 @@ automation:
 
     const document = await vscode.workspace.openTextDocument({
       content: testContent,
-      language: "yaml"
+      language: "home-assistant"
     })
 
     await vscode.window.showTextDocument(document)
@@ -195,7 +196,7 @@ automation:
 
     const document = await vscode.workspace.openTextDocument({
       content: testContent,
-      language: "yaml"
+      language: "home-assistant"
     })
 
     await vscode.window.showTextDocument(document)
@@ -274,7 +275,7 @@ automation:
 
     const document = await vscode.workspace.openTextDocument({
       content: testContent,
-      language: "yaml"
+      language: "home-assistant"
     })
 
     await vscode.window.showTextDocument(document)

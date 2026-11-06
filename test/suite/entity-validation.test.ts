@@ -1,6 +1,8 @@
 import * as assert from "assert"
 import * as vscode from "vscode"
 import * as path from "path"
+import { EXTENSION_ID } from "../helpers/constants.js"
+import { waitForDiagnostics } from "../helpers/waitFor.js"
 
 // Test entity validation functionality
 suite("Entity Validation", () => {
@@ -10,7 +12,7 @@ suite("Entity Validation", () => {
     workspacePath = vscode.workspace.workspaceFolders?.[0].uri.fsPath || ""
 
     // Activate the extension
-    await vscode.extensions.getExtension("thegeeklab.home-assistant")?.activate()
+    await vscode.extensions.getExtension(EXTENSION_ID)?.activate()
 
     vscode.window.showInformationMessage("Starting entity validation tests...")
   })
@@ -28,27 +30,23 @@ suite("Entity Validation", () => {
       `Document is recognized as YAML or Home Assistant (got: ${document.languageId})`
     )
 
-    // Get diagnostics for the document
-    const diagnostics = vscode.languages.getDiagnostics(document.uri)
+    // Wait for the language server to produce entity diagnostics
+    const diagnostics = await waitForDiagnostics(
+      document,
+      (ds) => ds.some((d) => d.source === "home-assistant" && d.code === "unknown-entity"),
+      { message: "entity diagnostics for entity validation file" }
+    )
 
-    // Log diagnostics for debugging
-    console.log(`Found ${diagnostics.length} diagnostics in entity validation test file:`)
-    for (const diagnostic of diagnostics) {
-      console.log(`  - ${diagnostic.severity}: ${diagnostic.message} (${diagnostic.source})`)
-    }
-
-    // Check if we have any entity-related diagnostics
     const entityDiagnostics = diagnostics.filter(
       (d) =>
         d.source === "home-assistant" &&
         (d.code === "unknown-entity" || d.message.includes("does not exist"))
     )
 
-    console.log(`Found ${entityDiagnostics.length} entity validation diagnostics`)
-
-    // Note: In a real test environment without Home Assistant connection,
-    // we might not get diagnostics, but the test verifies the file structure works
-    assert.ok(true, "Entity validation test completed")
+    assert.ok(
+      entityDiagnostics.length > 0,
+      `Expected entity validation diagnostics, got ${entityDiagnostics.length}`
+    )
 
     // Close the document
     await vscode.commands.executeCommand("workbench.action.closeActiveEditor")
@@ -75,7 +73,7 @@ automation:
 
     const document = await vscode.workspace.openTextDocument({
       content: testContent,
-      language: "yaml"
+      language: "home-assistant"
     })
 
     await vscode.window.showTextDocument(document)
@@ -108,21 +106,17 @@ automation:
 
     const document = await vscode.workspace.openTextDocument({
       content: testContent,
-      language: "yaml"
+      language: "home-assistant"
     })
 
     await vscode.window.showTextDocument(document)
 
-    // Get diagnostics for the document
-    const diagnostics = vscode.languages.getDiagnostics(document.uri)
-
-    // Log diagnostics for debugging
-    console.log(`Found ${diagnostics.length} diagnostics in comment test file:`)
-    for (const diagnostic of diagnostics) {
-      console.log(
-        `  - Line ${diagnostic.range.start.line + 1}: ${diagnostic.message} (${diagnostic.source})`
-      )
-    }
+    // Wait for the language server to flag the real (non-commented) entities
+    const diagnostics = await waitForDiagnostics(
+      document,
+      (ds) => ds.some((d) => d.source === "home-assistant" && d.code === "unknown-entity"),
+      { message: "entity diagnostics for comment test" }
+    )
 
     // Check that commented entity IDs don't generate diagnostics
     const entityDiagnostics = diagnostics.filter(
@@ -136,8 +130,6 @@ automation:
       const line = document.lineAt(diagnostic.range.start.line).text
       assert.ok(!line.trim().startsWith("#"), `Diagnostic found on commented line: ${line.trim()}`)
     }
-
-    console.log(`Entity validation correctly skipped commented lines`)
 
     // Close the document
     await vscode.commands.executeCommand("workbench.action.closeActiveEditor")
