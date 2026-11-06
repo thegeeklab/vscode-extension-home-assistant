@@ -1,5 +1,6 @@
 import * as assert from "assert"
 import * as vscode from "vscode"
+import { waitForDiagnostics } from "../helpers/waitFor.js"
 
 // Test for issue #3623: Entity in trigger incorrectly validated as action
 suite("Automation Trigger Issue #3623", () => {
@@ -34,11 +35,11 @@ action:
 
     await vscode.window.showTextDocument(document)
 
-    // Wait for language server processing
-    await new Promise((resolve) => setTimeout(resolve, 3000))
-
-    // Get diagnostics for the document
-    const diagnostics = vscode.languages.getDiagnostics(document.uri)
+    // Wait for diagnostics to settle
+    const diagnostics = await waitForDiagnostics(document, () => true, {
+      settleMs: 500,
+      message: "diagnostics for automation trigger test"
+    })
 
     // Log all diagnostics for debugging
     console.log(`Found ${diagnostics.length} diagnostics in automation trigger test:`)
@@ -111,9 +112,6 @@ action:
     })
 
     await vscode.window.showTextDocument(document)
-
-    // Wait for language server processing
-    await new Promise((resolve) => setTimeout(resolve, 3000))
 
     // Get diagnostics for the document
     const diagnostics = vscode.languages.getDiagnostics(document.uri)

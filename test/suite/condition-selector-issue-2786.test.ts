@@ -1,5 +1,6 @@
 import * as assert from "assert"
 import * as vscode from "vscode"
+import { waitForDiagnostics } from "../helpers/waitFor.js"
 
 // Test for issue #2786: Condition selector causes syntax check false error
 suite("Condition Selector Issue #2786", () => {
@@ -46,11 +47,11 @@ automation:
 
     await vscode.window.showTextDocument(document)
 
-    // Wait for language server processing
-    await new Promise((resolve) => setTimeout(resolve, 3000))
-
-    // Get diagnostics for the document
-    const diagnostics = vscode.languages.getDiagnostics(document.uri)
+    // Wait for diagnostics to settle
+    const diagnostics = await waitForDiagnostics(document, () => true, {
+      settleMs: 500,
+      message: "diagnostics for condition selector test"
+    })
 
     // Log all diagnostics for debugging
     console.log(`Found ${diagnostics.length} diagnostics in single !input condition test:`)
@@ -121,11 +122,11 @@ automation:
 
     await vscode.window.showTextDocument(document)
 
-    // Wait for language server processing
-    await new Promise((resolve) => setTimeout(resolve, 3000))
-
-    // Get diagnostics for the document
-    const diagnostics = vscode.languages.getDiagnostics(document.uri)
+    // Wait for diagnostics to settle
+    const diagnostics = await waitForDiagnostics(document, () => true, {
+      settleMs: 500,
+      message: "diagnostics for condition selector test"
+    })
 
     // Log all diagnostics for debugging
     console.log(`Found ${diagnostics.length} diagnostics in mixed conditions test:`)
@@ -199,11 +200,11 @@ automation:
 
     await vscode.window.showTextDocument(document)
 
-    // Wait for language server processing
-    await new Promise((resolve) => setTimeout(resolve, 3000))
-
-    // Get diagnostics for the document
-    const diagnostics = vscode.languages.getDiagnostics(document.uri)
+    // Wait for diagnostics to settle
+    const diagnostics = await waitForDiagnostics(document, () => true, {
+      settleMs: 500,
+      message: "diagnostics for condition selector test"
+    })
 
     // Log all diagnostics for debugging
     console.log(`Found ${diagnostics.length} diagnostics in if/then !input test:`)
@@ -278,11 +279,11 @@ automation:
 
     await vscode.window.showTextDocument(document)
 
-    // Wait for language server processing
-    await new Promise((resolve) => setTimeout(resolve, 3000))
-
-    // Get diagnostics for the document
-    const diagnostics = vscode.languages.getDiagnostics(document.uri)
+    // Wait for diagnostics to settle
+    const diagnostics = await waitForDiagnostics(document, () => true, {
+      settleMs: 500,
+      message: "diagnostics for condition selector test"
+    })
 
     // Log all diagnostics for debugging
     console.log(`Found ${diagnostics.length} diagnostics in multiple !input test:`)
