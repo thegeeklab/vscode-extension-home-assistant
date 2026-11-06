@@ -735,7 +735,6 @@
     "@eslint/js": "10.0.1",
     "@types/mocha": "10.0.10",
     "@types/node": "26.x",
-    "@types/uuid": "^11.0.0",
     "@types/vscode": "1.144.0",
     "@types/ws": "8.18.2",
     "@typescript-eslint/eslint-plugin": "8.72.0",
