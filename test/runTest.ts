@@ -10,7 +10,7 @@ async function main() {
     const extensionTestsPath = path.resolve(import.meta.dirname, "./suite/index.js")
 
     // The path to the workspace to use for testing
-    const testWorkspace = path.resolve(extensionDevelopmentPath, "test-workspace")
+    const testWorkspace = path.resolve(extensionDevelopmentPath, "test/fixtures/workspace")
 
     // Download VS Code, unzip it and run the integration test
     await runTests({

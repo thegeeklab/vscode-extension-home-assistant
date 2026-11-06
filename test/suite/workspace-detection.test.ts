@@ -2,7 +2,7 @@ import * as assert from "assert"
 
 suite("Home Assistant Workspace Detection Tests", () => {
   test("Should detect valid Home Assistant workspace with .storage folder", async () => {
-    // This test would need to be run in a workspace with the test-ha-detection folder
+    // This test would need to be run in a workspace with the test/fixtures/ha-detection folder
     // For now, this is a template for the test structure
 
     // The isHomeAssistantWorkspace function should return true when:

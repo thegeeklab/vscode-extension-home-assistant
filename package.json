@@ -65,7 +65,7 @@
           "home-assistant.devMockConnection": {
             "type": "boolean",
             "default": false,
-            "description": "Use a static mock Home Assistant connection with fixed entities, devices, areas, floors, labels, and services. Intended for Extension Development Host / test-workspace validation without a live Home Assistant instance. Reload the window after changing this setting."
+            "description": "Use a static mock Home Assistant connection with fixed entities, devices, areas, floors, labels, and services. Intended for Extension Development Host / test/fixtures/workspace validation without a live Home Assistant instance. Reload the window after changing this setting."
           }
         }
       }

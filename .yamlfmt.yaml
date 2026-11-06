@@ -6,6 +6,4 @@ formatter:
   retain_line_breaks_single: True
 gitignore_excludes: True
 exclude:
-  - test-workspace
-  - test-ha-detection
-  - test-non-ha-detection
+  - test/fixtures

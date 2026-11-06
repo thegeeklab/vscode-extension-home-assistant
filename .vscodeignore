@@ -5,9 +5,6 @@
 src/**
 test/**
 out/test/**
-test-workspace/**
-test-ha-detection/**
-test-non-ha-detection/**
 .eslintrc.json
 eslint.config.js
 .gitignore

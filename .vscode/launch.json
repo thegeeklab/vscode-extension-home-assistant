@@ -20,7 +20,7 @@
       "args": [
         "--extensionDevelopmentPath=${workspaceRoot}",
         "--extensionTestsPath=${workspaceRoot}/out/test/suite/index",
-        "${workspaceRoot}/test-workspace",
+        "${workspaceRoot}/test/fixtures/workspace",
         "--disable-extensions"
       ],
       "sourceMaps": true,

@@ -30,7 +30,7 @@ suite("Schema Validation Tests", () => {
     const document = await createTestFile(content, fileName)
 
     // Open the document and force a re-validation
-    const editor = await vscode.window.showTextDocument(document)
+    const editor = await vscode.window.showTextDocument(document, { preview: false })
 
     // Force multiple edits to trigger validation
     for (let i = 0; i < 2; i++) {

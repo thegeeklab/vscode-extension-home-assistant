@@ -1,7 +1,5 @@
 LICENSE.md
 out
 dist
-test-workspace
-test-ha-detection
-test-non-ha-detection
+test/fixtures
 src/language-service/src/schemas/json
