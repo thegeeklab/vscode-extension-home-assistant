@@ -1,4 +1,4 @@
-import { ViewLayout } from "../types";
+import { ViewLayout } from "../types.js"
 
 /**
  * Lovelace Energy distribution Card
@@ -10,15 +10,15 @@ export interface Schema {
    * The energy distribution card shows how the energy flowed, from the grid to your house, from your solar panels to your house and/or back to the grid.
    * https://www.home-assistant.io/lovelace/energy/#energy-distribution
    */
-  type: "energy-distribution";
+  type: "energy-distribution"
 
   /**
    * The card title.
    */
-  title?: string;
+  title?: string
 
   /**
    * Layout options for the view this card is in
    */
-  view_layout?: ViewLayout;
+  view_layout?: ViewLayout
 }

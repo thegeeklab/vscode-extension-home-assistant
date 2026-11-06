@@ -1,22 +1,29 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es2020",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2024",
+    "lib": ["ES2024"],
     "outDir": "out",
-    "rootDir": "src",
-    "lib": ["ES2020"],
     "sourceMap": true,
+    "strict": false,
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "noUnusedParameters": true,
     "noUnusedLocals": true,
-    "noImplicitAny": true,
-    // Keep TypeScript 5 defaults; TS 6 enables strict and drops node10 resolution by default
-    "strict": false,
-    "moduleResolution": "node10",
-    "ignoreDeprecations": "6.0"
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": false,
+    "ignoreDeprecations": "6.0",
+    "types": ["node", "mocha"],
+    "paths": {
+      "vscode-languageclient/node": ["./node_modules/vscode-languageclient/lib/node/main.d.ts"],
+      "vscode-languageserver/node": ["./node_modules/vscode-languageserver/lib/node/main.d.ts"],
+      "vscode-languageserver-protocol/node": [
+        "./node_modules/vscode-languageserver-protocol/lib/node/main.d.ts"
+      ]
+    }
   },
-  "include": ["src/**/*.ts", "src/**/*.json"],
-  "exclude": ["node_modules", ".vscode-test", "server"]
+  "include": ["src/**/*.ts", "src/**/*.json", "test/**/*.ts", "test/**/*.json"],
+  "exclude": ["node_modules", "out", "dist", ".vscode-test"]
 }

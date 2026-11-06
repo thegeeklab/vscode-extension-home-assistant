@@ -1,29 +1,26 @@
-import { Definition, Location } from "vscode-languageserver-protocol";
-import { HomeAssistantConfiguration } from "../haConfig/haConfig";
-import { DefinitionProvider } from "./definition";
+import { Definition, Location } from "vscode-languageserver-protocol"
+import { HomeAssistantConfiguration } from "../haConfig/haConfig.js"
+import { DefinitionProvider } from "./definition.js"
 
 export class ScriptDefinitionProvider implements DefinitionProvider {
   constructor(private haConfig: HomeAssistantConfiguration) {}
 
-  public onDefinition = async (
-    line: string,
-    _uri: string,
-  ): Promise<Definition[]> => {
-    const matches = /(.*)(script\.([\S]*))([\s]*)*(.*)/.exec(line);
+  public onDefinition = async (line: string, _uri: string): Promise<Definition[]> => {
+    const matches = /(.*)(script\.([\S]*))([\s]*)*(.*)/.exec(line)
     if (!matches || matches.length !== 6) {
-      return [];
+      return []
     }
-    const scripts = await this.haConfig.getScripts();
-    const scriptName = matches[3].replace(":", ""); // might be possible in regex!?
-    const ourScript = scripts[scriptName];
+    const scripts = await this.haConfig.getScripts()
+    const scriptName = matches[3].replace(":", "") // might be possible in regex!?
+    const ourScript = scripts[scriptName]
     if (!ourScript) {
-      return [];
+      return []
     }
     return [
       Location.create(ourScript.fileUri, {
         start: { line: ourScript.start[0], character: ourScript.start[1] },
-        end: { line: ourScript.end[0], character: ourScript.end[1] },
-      }),
-    ];
-  };
+        end: { line: ourScript.end[0], character: ourScript.end[1] }
+      })
+    ]
+  }
 }

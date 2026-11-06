@@ -1,10 +1,10 @@
-import { MarkedString } from "vscode-languageserver-protocol";
+import { MarkedString } from "vscode-languageserver-protocol"
 import {
   JSONWorkerContribution,
   JSONPath,
-  CompletionsCollector,
-} from "vscode-json-languageservice";
-import { IHaConnection } from "../home-assistant/haConnection";
+  CompletionsCollector
+} from "vscode-json-languageservice"
+import { IHaConnection } from "../home-assistant/haConnection.js"
 
 export class DomainCompletionContribution implements JSONWorkerContribution {
   public static propertyMatches: string[] = [
@@ -12,16 +12,16 @@ export class DomainCompletionContribution implements JSONWorkerContribution {
     "domain",
     "include_domains",
     "exclude_domains",
-    "domains",
-  ];
+    "domains"
+  ]
 
   constructor(private haConnection: IHaConnection) {}
 
   public collectDefaultCompletions(
     _resource: string,
-    _result: CompletionsCollector,
+    _result: CompletionsCollector
   ): Thenable<any> {
-    return Promise.resolve(null);
+    return Promise.resolve(null)
   }
 
   public collectPropertyCompletions = async (
@@ -30,58 +30,49 @@ export class DomainCompletionContribution implements JSONWorkerContribution {
     _currentWord: string,
     _addValue: boolean,
     _isLast: boolean,
-    result: CompletionsCollector,
+    result: CompletionsCollector
   ): Promise<any> => {
     if (location.length < 2) {
-      return;
+      return
     }
-    const currentNode = location[location.length - 1];
-    const parentNode = location[location.length - 2]; // in case or arrays, currentNode is the indexer for the array position
+    const currentNode = location[location.length - 1]
+    const parentNode = location[location.length - 2] // in case or arrays, currentNode is the indexer for the array position
     if (
       !DomainCompletionContribution.propertyMatches.some(
-        (x) =>
-          x === currentNode ||
-          (!Number.isNaN(+currentNode) && x === parentNode),
+        (x) => x === currentNode || (!Number.isNaN(+currentNode) && x === parentNode)
       )
     ) {
-      return;
+      return
     }
-    const domainCompletions = await this.haConnection.getDomainCompletions();
+    const domainCompletions = await this.haConnection.getDomainCompletions()
     domainCompletions.forEach((c) => {
       if (c.insertText === undefined) {
-        c.insertText = c.label;
+        c.insertText = c.label
       }
-      result.add(c as any);
-    });
-  };
+      result.add(c as any)
+    })
+  }
 
   public collectValueCompletions = async (
     _resource: string,
     _location: JSONPath,
     currentKey: string,
-    result: CompletionsCollector,
+    result: CompletionsCollector
   ): Promise<any> => {
-    if (
-      !DomainCompletionContribution.propertyMatches.some(
-        (x) => x === currentKey,
-      )
-    ) {
-      return;
+    if (!DomainCompletionContribution.propertyMatches.some((x) => x === currentKey)) {
+      return
     }
 
-    const domainCompletions = await this.haConnection.getEntityCompletions();
+    const domainCompletions = await this.haConnection.getEntityCompletions()
     domainCompletions.forEach((c) => {
       if (c.insertText === undefined) {
-        c.insertText = c.label;
+        c.insertText = c.label
       }
-      result.add(c as any);
-    });
-  };
+      result.add(c as any)
+    })
+  }
 
-  public getInfoContribution(
-    _resource: string,
-    _location: JSONPath,
-  ): Thenable<MarkedString[]> {
-    return Promise.resolve([]);
+  public getInfoContribution(_resource: string, _location: JSONPath): Thenable<MarkedString[]> {
+    return Promise.resolve([])
   }
 }

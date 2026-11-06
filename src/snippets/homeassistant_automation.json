@@ -96,10 +96,7 @@
   },
   "trigger template": {
     "prefix": "trigger-template",
-    "body": [
-      "- platform: template",
-      "  value_template: \"{{ ${1:value_template} }}\""
-    ],
+    "body": ["- platform: template", "  value_template: \"{{ ${1:value_template} }}\""],
     "description": "Add a Home Assistant template trigger for automation"
   },
   "trigger time": {
@@ -119,11 +116,7 @@
   },
   "trigger conversation": {
     "prefix": "trigger-conversation",
-    "body": [
-      "- platform: conversation",
-      "  command:",
-      "    - \"${1:my sentence}\""
-    ],
+    "body": ["- platform: conversation", "  command:", "    - \"${1:my sentence}\""],
     "description": "Add a Home Assistant conversation trigger for automation"
   },
   "action service": {

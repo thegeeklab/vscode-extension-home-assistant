@@ -5,61 +5,61 @@
  *  - https://github.com/home-assistant/frontend/blob/dev/src/panels/lovelace/cards/types.ts
  *  - https://github.com/home-assistant/frontend/blob/dev/src/data/lovelace.ts
  */
-import { Action } from "../actions";
-import { LightEntity } from "../../types";
-import { ViewLayout } from "../types";
+import { Action } from "../actions.js"
+import { LightEntity } from "../../types.js"
+import { ViewLayout } from "../types.js"
 
 export interface Schema {
   /**
    * The Light card allows you to change the brightness of the light.
    * https://www.home-assistant.io/lovelace/light/
    */
-  type: "light";
+  type: "light"
 
   /**
    * Action taken on card double tap.
    * https://www.home-assistant.io/lovelace/light/#double_tap_action
    */
-  double_tap_action?: Action;
+  double_tap_action?: Action
 
   /**
    * Home Assistant Light Domain entity ID.
    * https://www.home-assistant.io/lovelace/light/#entity
    */
-  entity: LightEntity;
+  entity: LightEntity
 
   /**
    * Action taken on card tap and hold.
    * https://www.home-assistant.io/lovelace/light/#hold_action
    */
-  hold_action?: Action;
+  hold_action?: Action
 
   /**
    * Overwrites icon.
    * https://www.home-assistant.io/lovelace/light/#icon
    */
-  icon?: string;
+  icon?: string
 
   /**
    * Overwrites friendly name.
    * https://www.home-assistant.io/lovelace/light/#name
    */
-  name?: string;
+  name?: string
 
   /**
    * The action taken on card tap.
    * https://www.home-assistant.io/lovelace/light/#tap_action
    */
-  tap_action?: Action;
+  tap_action?: Action
 
   /**
    * Set to any theme within themes.yaml.
    * https://www.home-assistant.io/lovelace/light/#theme
    */
-  theme?: string;
+  theme?: string
 
   /**
    * Layout options for the view this card is in
    */
-  view_layout?: ViewLayout;
+  view_layout?: ViewLayout
 }

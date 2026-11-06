@@ -11,5 +11,5 @@ export interface Schema {
    *
    * @TJS-pattern DEPRECATED^
    */
-  type: "entity-button";
+  type: "entity-button"
 }

@@ -6,29 +6,29 @@
  *  - https://github.com/home-assistant/frontend/blob/dev/src/data/lovelace.ts
  */
 
-import { Card, ViewLayout } from "../types";
+import { Card, ViewLayout } from "../types.js"
 
 export interface Schema {
   /**
    * The Horizontal Stack card allows you to stack together multiple cards, so they always sit next to each other in the space of one column
    * https://www.home-assistant.io/lovelace/horizontal-stack/
    */
-  type: "horizontal-stack";
+  type: "horizontal-stack"
 
   /**
    * List of cards.
    * https://www.home-assistant.io/lovelace/horizontal-stack/#cards
    */
-  cards: Card[];
+  cards: Card[]
 
   /**
    * Title of Stack.
    * https://www.home-assistant.io/lovelace/horizontal-stack/#title
    */
-  title?: string;
+  title?: string
 
   /**
    * Layout options for the view this card is in
    */
-  view_layout?: ViewLayout;
+  view_layout?: ViewLayout
 }

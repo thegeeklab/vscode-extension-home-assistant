@@ -1,2 +1,2 @@
-export * as Core from "./core";
-export * as Custom from "./custom";
+export * as Core from "./core/index.js"
+export * as Custom from "./custom/index.js"

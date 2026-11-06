@@ -1,0 +1,16 @@
+---
+when:
+  - event: [pull_request, tag]
+  - event: [push, manual]
+    branch:
+      - ${CI_REPO_DEFAULT_BRANCH}
+
+steps:
+  - name: test
+    image: docker.io/library/node:26
+    commands:
+      - apt-get update > /dev/null 2>&1 && apt-get install -yq dbus dbus-x11 libasound2 libgbm1 libgtk-3-0 libnss3 xvfb wget jq > /dev/null 2>&1
+      - eval $$(dbus-launch --sh-syntax)
+      - export DBUS_SYSTEM_BUS_ADDRESS=$$DBUS_SESSION_BUS_ADDRESS
+      - npm ci
+      - xvfb-run -a npm run test

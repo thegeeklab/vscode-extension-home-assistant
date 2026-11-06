@@ -6,43 +6,43 @@
  *  - https://github.com/home-assistant/frontend/blob/dev/src/data/lovelace.ts
  */
 
-import { PositiveInteger } from "../../types";
-import { Card, ViewLayout } from "../types";
+import { PositiveInteger } from "../../types.js"
+import { Card, ViewLayout } from "../types.js"
 
 export interface Schema {
   /**
    * The Grid card allows you to show multiple cards in a grid. It will first fill the columns, automatically adding new rows as needed.
    * https://www.home-assistant.io/lovelace/grid/
    */
-  type: "grid";
+  type: "grid"
 
   // : Reference to card type
   /**
    * List of cards.
    * https://www.home-assistant.io/lovelace/grid/#cards
    */
-  cards: Card[];
+  cards: Card[]
 
   /**
    * Number of columns in the grid.
    * https://www.home-assistant.io/lovelace/grid/#columns
    */
-  columns?: PositiveInteger;
+  columns?: PositiveInteger
 
   /**
    * Should the cards be shown square.
    * https://www.home-assistant.io/lovelace/grid/#square
    */
-  square?: boolean;
+  square?: boolean
 
   /**
    * Title of Grid.
    * https://www.home-assistant.io/lovelace/grid/#title
    */
-  title?: string;
+  title?: string
 
   /**
    * Layout options for the view this card is in
    */
-  view_layout?: ViewLayout;
+  view_layout?: ViewLayout
 }

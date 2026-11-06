@@ -1,45 +1,45 @@
-import * as vscode from "vscode";
-import { AuthManager } from "../auth/manager";
-import { testHomeAssistantConnection } from "../auth/debug";
+import * as vscode from "vscode"
+import { AuthManager } from "../auth/manager.js"
+import { testHomeAssistantConnection } from "../auth/debug.js"
 
 /**
  * Status bar item for showing Home Assistant connection status
  * Shows the connected instance name, or "Connect" if no connection is available
  */
 export class HomeAssistantStatusBar {
-  private statusBarItem: vscode.StatusBarItem;
-  private instanceName: string | undefined;
-  private context: vscode.ExtensionContext;
-  private checkInProgress = false;
+  private statusBarItem: vscode.StatusBarItem
+  private instanceName: string | undefined
+  private context: vscode.ExtensionContext
+  private checkInProgress = false
 
   constructor(context: vscode.ExtensionContext) {
-    this.context = context;
-    
+    this.context = context
+
     // Create status bar item with medium priority (closer to the right side)
-    this.statusBarItem = vscode.window.createStatusBarItem(
-      vscode.StatusBarAlignment.Right,
-      100
-    );
-    
+    this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100)
+
     // Set command to be executed when clicking the status bar item
-    this.statusBarItem.command = "vscode-home-assistant.manageAuth";
-    
+    this.statusBarItem.command = "home-assistant.manageAuth"
+
     // Set initial status
-    this.updateStatus("disconnected");
-    this.statusBarItem.show();
-    
+    this.updateStatus("disconnected")
+    this.statusBarItem.show()
+
     // Register the status bar item to be disposed when the extension is deactivated
-    context.subscriptions.push(this.statusBarItem);
+    context.subscriptions.push(this.statusBarItem)
   }
 
   /**
    * Set the status directly based on server notification
    */
-  public setConnectionStatus(status: "connected" | "error", instanceInfo?: { name?: string }): void {
+  public setConnectionStatus(
+    status: "connected" | "error",
+    instanceInfo?: { name?: string }
+  ): void {
     if (status === "connected" && instanceInfo?.name) {
-      this.instanceName = instanceInfo.name;
+      this.instanceName = instanceInfo.name
     }
-    this.updateStatus(status);
+    this.updateStatus(status)
   }
 
   /**
@@ -49,59 +49,59 @@ export class HomeAssistantStatusBar {
   public async checkConnectionStatus(): Promise<void> {
     // Prevent multiple simultaneous checks
     if (this.checkInProgress) {
-      return;
+      return
     }
 
     try {
-      this.checkInProgress = true;
-      
+      this.checkInProgress = true
+
       // Get config to check if we should ignore certificates / use mock mode
-      const config = vscode.workspace.getConfiguration("vscode-home-assistant");
+      const config = vscode.workspace.getConfiguration("home-assistant")
       if (config.get<boolean>("devMockConnection")) {
-        this.instanceName = "Dev Mock HA";
-        this.updateStatus("connected");
-        return;
+        this.instanceName = "Dev Mock HA"
+        this.updateStatus("connected")
+        return
       }
 
       // Get token and URL from SecretStorage
-      const token = await AuthManager.getToken(this.context);
-      const url = await AuthManager.getUrl(this.context);
-      
+      const token = await AuthManager.getToken(this.context)
+      const url = await AuthManager.getUrl(this.context)
+
       // If token or URL is missing, show disconnected status
       if (!token || !url) {
-        this.updateStatus("disconnected");
-        return;
+        this.updateStatus("disconnected")
+        return
       }
 
-      const ignoreCertificates = !!config.get<boolean>("ignoreCertificates");
-      
+      const ignoreCertificates = !!config.get<boolean>("ignoreCertificates")
+
       // Test connection to Home Assistant
-      const response = await testHomeAssistantConnection(url, token, ignoreCertificates);
-      
+      const response = await testHomeAssistantConnection(url, token, ignoreCertificates)
+
       if (response.success) {
         // Extract instance name from connection response data if available
-        let instanceName = "Home Assistant";
+        let instanceName = "Home Assistant"
         if (response.data) {
           // Try to get instance name from different possible properties
           if (response.data.location_name) {
-            instanceName = response.data.location_name;
+            instanceName = response.data.location_name
           } else if (response.data.config?.location_name) {
-            instanceName = response.data.config.location_name;
+            instanceName = response.data.config.location_name
           }
-          
+
           // Store instance name and version for display
-          this.instanceName = instanceName;
+          this.instanceName = instanceName
         }
-        
-        this.updateStatus("connected");
+
+        this.updateStatus("connected")
       } else {
-        this.updateStatus("error");
+        this.updateStatus("error")
       }
     } catch (error) {
-      console.error("Error checking Home Assistant connection status:", error);
-      this.updateStatus("error");
+      console.error("Error checking Home Assistant connection status:", error)
+      this.updateStatus("error")
     } finally {
-      this.checkInProgress = false;
+      this.checkInProgress = false
     }
   }
 
@@ -110,19 +110,23 @@ export class HomeAssistantStatusBar {
    */
   public async openInBrowser(): Promise<void> {
     try {
-      const url = await AuthManager.getUrl(this.context);
-      
+      const url = await AuthManager.getUrl(this.context)
+
       if (url) {
         // Open the URL in the user's default browser
-        vscode.env.openExternal(vscode.Uri.parse(url));
+        vscode.env.openExternal(vscode.Uri.parse(url))
       } else {
-        vscode.window.showErrorMessage("Home Assistant URL is not configured. Please set it first.");
+        vscode.window.showErrorMessage(
+          "Home Assistant URL is not configured. Please set it first."
+        )
         // Show the authentication management dialog if URL is not set
-        vscode.commands.executeCommand("vscode-home-assistant.manageAuth");
+        vscode.commands.executeCommand("home-assistant.manageAuth")
       }
     } catch (error) {
-      console.error("Error opening Home Assistant in browser:", error);
-      vscode.window.showErrorMessage(`Failed to open Home Assistant: ${error.message || "Unknown error"}`);
+      console.error("Error opening Home Assistant in browser:", error)
+      vscode.window.showErrorMessage(
+        `Failed to open Home Assistant: ${error.message || "Unknown error"}`
+      )
     }
   }
 
@@ -133,20 +137,20 @@ export class HomeAssistantStatusBar {
     // Update the status bar UI without storing the status value
     switch (status) {
       case "connected":
-        this.statusBarItem.text = `$(home) ${this.instanceName || "Connected"}`;
-        this.statusBarItem.tooltip = "Click to open Home Assistant in browser";
-        this.statusBarItem.command = "vscode-home-assistant.openInBrowser";
-        break;
+        this.statusBarItem.text = `$(home) ${this.instanceName || "Connected"}`
+        this.statusBarItem.tooltip = "Click to open Home Assistant in browser"
+        this.statusBarItem.command = "home-assistant.openInBrowser"
+        break
       case "disconnected":
-        this.statusBarItem.text = "$(home) Connect";
-        this.statusBarItem.tooltip = "Connect to Home Assistant";
-        this.statusBarItem.command = "vscode-home-assistant.manageAuth";
-        break;
+        this.statusBarItem.text = "$(home) Connect"
+        this.statusBarItem.tooltip = "Connect to Home Assistant"
+        this.statusBarItem.command = "home-assistant.manageAuth"
+        break
       case "error":
-        this.statusBarItem.text = "$(home) Error";
-        this.statusBarItem.tooltip = "Error connecting to Home Assistant";
-        this.statusBarItem.command = "vscode-home-assistant.manageAuth";
-        break;
+        this.statusBarItem.text = "$(home) Error"
+        this.statusBarItem.tooltip = "Error connecting to Home Assistant"
+        this.statusBarItem.command = "home-assistant.manageAuth"
+        break
     }
   }
 
@@ -154,6 +158,6 @@ export class HomeAssistantStatusBar {
    * Dispose the status bar item
    */
   public dispose(): void {
-    this.statusBarItem.dispose();
+    this.statusBarItem.dispose()
   }
 }

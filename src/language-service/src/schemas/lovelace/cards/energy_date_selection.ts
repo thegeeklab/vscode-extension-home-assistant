@@ -1,4 +1,4 @@
-import { ViewLayout } from "../types";
+import { ViewLayout } from "../types.js"
 
 /**
  * Lovelace Energy Date Picker Card
@@ -10,10 +10,10 @@ export interface Schema {
    * This card will allow you to pick what date to show.
    * https://www.home-assistant.io/lovelace/energy/#energy-date-picker
    */
-  type: "energy-date-selection";
+  type: "energy-date-selection"
 
   /**
    * Layout options for the view this card is in
    */
-  view_layout?: ViewLayout;
+  view_layout?: ViewLayout
 }

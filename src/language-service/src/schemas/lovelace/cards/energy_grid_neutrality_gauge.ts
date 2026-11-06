@@ -1,4 +1,4 @@
-import { ViewLayout } from "../types";
+import { ViewLayout } from "../types.js"
 
 /**
  * Lovelace Grid neutrality gauge Card
@@ -10,15 +10,15 @@ export interface Schema {
    * The grid neutrality gauge card represents your energy dependency.
    * https://www.home-assistant.io/lovelace/energy/#grid-neutrality-gauge
    */
-  type: "energy-grid-neutrality-gauge";
+  type: "energy-grid-neutrality-gauge"
 
   /**
    * The card title.
    */
-  title?: string;
+  title?: string
 
   /**
    * Layout options for the view this card is in
    */
-  view_layout?: ViewLayout;
+  view_layout?: ViewLayout
 }

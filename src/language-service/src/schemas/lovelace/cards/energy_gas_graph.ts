@@ -1,4 +1,4 @@
-import { ViewLayout } from "../types";
+import { ViewLayout } from "../types.js"
 
 /**
  * Lovelace Gas graph Card
@@ -10,15 +10,15 @@ export interface Schema {
    * The gas consumption graph card shows the amount of gas consumed per source.
    * https://www.home-assistant.io/lovelace/energy/#gas-consumption-graph
    */
-  type: "energy-gas-graph";
+  type: "energy-gas-graph"
 
   /**
    * The card title.
    */
-  title?: string;
+  title?: string
 
   /**
    * Layout options for the view this card is in
    */
-  view_layout?: ViewLayout;
+  view_layout?: ViewLayout
 }

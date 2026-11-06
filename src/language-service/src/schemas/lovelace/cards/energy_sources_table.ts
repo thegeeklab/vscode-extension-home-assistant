@@ -1,4 +1,4 @@
-import { ViewLayout } from "../types";
+import { ViewLayout } from "../types.js"
 
 /**
  * Lovelace Energy sources table Card
@@ -10,15 +10,15 @@ export interface Schema {
    * The energy sources table card shows all your energy sources, and the corresponding amount of energy.
    * https://www.home-assistant.io/lovelace/energy/#energy-sources-table
    */
-  type: "energy-sources-table";
+  type: "energy-sources-table"
 
   /**
    * The card title.
    */
-  title?: string;
+  title?: string
 
   /**
    * Layout options for the view this card is in
    */
-  view_layout?: ViewLayout;
+  view_layout?: ViewLayout
 }

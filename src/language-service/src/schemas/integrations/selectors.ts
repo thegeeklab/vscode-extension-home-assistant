@@ -8,8 +8,8 @@ import {
   Entity,
   PositiveInteger,
   SupportedFeature,
-  LegacySyntax,
-} from "../types";
+  LegacySyntax
+} from "../types.js"
 
 export type Selector =
   | ActionSelector
@@ -48,14 +48,14 @@ export type Selector =
   | TextSelector
   | ThemeSelector
   | TimeSelector
-  | TriggerSelector;
+  | TriggerSelector
 
 export interface ActionSelector {
   /**
    * The action selector allows the user to input one or more sequences of actions.
    * https://www.home-assistant.io/docs/blueprint/selectors/#action-selector
    */
-  action: null | Record<string, never>;
+  action: null | Record<string, never>
 }
 
 export interface AddonSelector {
@@ -63,7 +63,7 @@ export interface AddonSelector {
    * The add-on selector allows the user to input an add-on slug. On the user interface, it will list all installed add-ons and use the slug of the selected add-on.
    * https://www.home-assistant.io/docs/blueprint/selectors/#add-on-selector
    */
-  addon: null | Record<string, never>;
+  addon: null | Record<string, never>
 }
 
 export interface AreaSelector {
@@ -76,20 +76,20 @@ export interface AreaSelector {
      * When device options are provided, the list of areas is filtered by areas that at least provide one device that matches the given conditions.
      * https://www.home-assistant.io/docs/blueprint/selectors/#area-selector
      */
-    device?: DeviceSelectorFilter | DeviceSelectorFilter[];
+    device?: DeviceSelectorFilter | DeviceSelectorFilter[]
 
     /**
      * When entity options are provided, the list of areas is filtered by areas that at least provide one entity that matches the given conditions.
      * https://www.home-assistant.io/docs/blueprint/selectors/#area-selector
      */
-    entity?: EntitySelectorFilter | EntitySelectorFilter[];
+    entity?: EntitySelectorFilter | EntitySelectorFilter[]
 
     /**
      * Allows selecting multiple areas. If set to `true`, the resulting value of this selector will be a list instead of a single string value.
      * https://www.home-assistant.io/docs/blueprint/selectors/#area-selector
      */
-    multiple?: boolean;
-  } | null;
+    multiple?: boolean
+  } | null
 }
 
 export interface AssistPipelineSelector {
@@ -97,7 +97,7 @@ export interface AssistPipelineSelector {
    * The assist pipeline selector shows all available assist pipelines (assistants) of which one can be selected.
    * https://www.home-assistant.io/docs/blueprint/selectors/#assist-pipeline-selector
    */
-  assist_pipeline: null | Record<string, never>;
+  assist_pipeline: null | Record<string, never>
 }
 
 export interface AttributeSelector {
@@ -110,14 +110,14 @@ export interface AttributeSelector {
      * The entity ID of which an state attribute can be selected from.
      * https://www.home-assistant.io/docs/blueprint/selectors/#attribute-selector
      */
-    entity_id: Entity;
+    entity_id: Entity
 
     /**
      * List of attribute names to hide from the UI. Hidden attributes can still be provided manually.
      * https://www.home-assistant.io/docs/blueprint/selectors/#attribute-selector
      */
-    hide_attributes?: string[];
-  };
+    hide_attributes?: string[]
+  }
 }
 
 export interface BackupLocationSelector {
@@ -125,7 +125,7 @@ export interface BackupLocationSelector {
    * The backup location selector shows a list of places a backup could go, depending on what you have configured in storage.
    * https://www.home-assistant.io/docs/blueprint/selectors/#backup-location-selector
    */
-  backup_location: null | Record<string, never>;
+  backup_location: null | Record<string, never>
 }
 
 export interface BooleanSelector {
@@ -133,7 +133,7 @@ export interface BooleanSelector {
    * The boolean selector shows a toggle that allows the user to turn on or off the selected option.
    * https://www.home-assistant.io/docs/blueprint/selectors/#boolean-selector
    */
-  boolean: null | Record<string, never>;
+  boolean: null | Record<string, never>
 }
 
 export interface ColorRGBSelector {
@@ -141,7 +141,7 @@ export interface ColorRGBSelector {
    * The RGB color selector allows the user to select a color from a color picker from the user interface, and returns the RGB color value.
    * https://www.home-assistant.io/docs/blueprint/selectors/#rgb-color-selector
    */
-  color_rgb: null | Record<string, never>;
+  color_rgb: null | Record<string, never>
 }
 
 export interface ColorTempSelector {
@@ -154,32 +154,32 @@ export interface ColorTempSelector {
      * The chosen unit for the color temperature. This can be either `kelvin` or `mired`. `mired` is the default for historical reasons.
      * https://www.home-assistant.io/docs/blueprint/selectors/#color-temperature-selector
      */
-    unit?: "kelvin" | "mired";
+    unit?: "kelvin" | "mired"
 
     /**
      * The minimum color temperature in the chosen unit.
      * https://www.home-assistant.io/docs/blueprint/selectors/#color-temperature-selector
      */
-    min?: number;
+    min?: number
 
     /**
      * The maximum color temperature in the chosen unit.
      * https://www.home-assistant.io/docs/blueprint/selectors/#color-temperature-selector
      */
-    max?: number;
+    max?: number
 
     /**
      * The minimum color temperature in mireds (legacy).
      * https://www.home-assistant.io/docs/blueprint/selectors/#color-temperature-selector
      */
-    min_mireds?: PositiveInteger;
+    min_mireds?: PositiveInteger
 
     /**
      * The maximum color temperature in mireds (legacy).
      * https://www.home-assistant.io/docs/blueprint/selectors/#color-temperature-selector
      */
-    max_mireds?: PositiveInteger;
-  } | null;
+    max_mireds?: PositiveInteger
+  } | null
 }
 
 export interface ConditionSelector {
@@ -187,7 +187,7 @@ export interface ConditionSelector {
    * The condition selector allows the user to input one or more conditions..
    * https://www.home-assistant.io/docs/blueprint/selectors/#condition-selector
    */
-  condition: null | Record<string, never>;
+  condition: null | Record<string, never>
 }
 
 export interface ConfigEntrySelector {
@@ -200,8 +200,8 @@ export interface ConfigEntrySelector {
      * Can be set to an integration domain. Limits the list of config entries provided by the set integration domain.
      * https://www.home-assistant.io/docs/blueprint/selectors/#config-entry-selector
      */
-    integration?: Domain;
-  } | null;
+    integration?: Domain
+  } | null
 }
 
 export interface ConstantSelector {
@@ -214,20 +214,20 @@ export interface ConstantSelector {
      * The label that is shown in the UI for this constant.
      * https://www.home-assistant.io/docs/blueprint/selectors/#constant-selector
      */
-    label?: string;
+    label?: string
 
     /**
      * Translation key for internationalization support.
      * https://www.home-assistant.io/docs/blueprint/selectors/#constant-selector
      */
-    translation_key?: string;
+    translation_key?: string
 
     /**
      * Value that is returned when this constant is enabled by the user
      * https://www.home-assistant.io/docs/blueprint/selectors/#constant-selector
      */
-    value: string | number | boolean;
-  };
+    value: string | number | boolean
+  }
 }
 
 export interface ConversationAgentSelector {
@@ -240,8 +240,8 @@ export interface ConversationAgentSelector {
      * Limits the list of conversation agents to those supporting the specified language.
      * https://www.home-assistant.io/docs/blueprint/selectors/#conversation-agent-selector
      */
-    language?: string;
-  } | null;
+    language?: string
+  } | null
 }
 
 export interface CountrySelector {
@@ -254,14 +254,14 @@ export interface CountrySelector {
      * A list of countries to pick from, this should be ISO 3166 country codes.
      * https://www.home-assistant.io/docs/blueprint/selectors/#country-selector
      */
-    countries?: string[];
+    countries?: string[]
 
     /**
      * Should the options be sorted by name, if set to true, the order of the provided countries is kept.
      * https://www.home-assistant.io/docs/blueprint/selectors/#country-selector
      */
-    no_sort?: boolean;
-  } | null;
+    no_sort?: boolean
+  } | null
 }
 
 export interface DateSelector {
@@ -269,7 +269,7 @@ export interface DateSelector {
    * The date selector shows a date input that allows the user to specify a date.
    * https://www.home-assistant.io/docs/blueprint/selectors/#date-selector
    */
-  date: null | Record<string, never>;
+  date: null | Record<string, never>
 }
 
 export interface DateTimeSelector {
@@ -277,7 +277,7 @@ export interface DateTimeSelector {
    * The date selector shows a date and time input that allows the user to specify a date with a specific time.
    * https://www.home-assistant.io/docs/blueprint/selectors/#date--time-selector
    */
-  datetime: null | Record<string, never>;
+  datetime: null | Record<string, never>
 }
 
 interface DeviceSelectorFilter {
@@ -285,25 +285,25 @@ interface DeviceSelectorFilter {
    * Can be set to an integration domain. Limits the list of devices to devices provided by the set integration domain.
    * https://www.home-assistant.io/docs/blueprint/selectors/#device-selector
    */
-  integration?: Domain;
+  integration?: Domain
 
   /**
    * When set, it limits the list of devices to devices provided by the set manufacturer name.
    * https://www.home-assistant.io/docs/blueprint/selectors/#device-selector
    */
-  manufacturer?: string;
+  manufacturer?: string
 
   /**
    * When set, it limits the list of devices to devices that have the set model.
    * https://www.home-assistant.io/docs/blueprint/selectors/#device-selector
    */
-  model?: string;
+  model?: string
 
   /**
    * When set, the list of devices is limited to devices that have the set model ID.
    * https://www.home-assistant.io/docs/blueprint/selectors/#device-selector
    */
-  model_id?: string;
+  model_id?: string
 }
 
 export interface DeviceSelector {
@@ -316,35 +316,35 @@ export interface DeviceSelector {
      * When entity options are provided, the list of devices is filtered by devices that at least provide one entity that matches the given conditions.
      * https://www.home-assistant.io/docs/blueprint/selectors/#device-selector
      */
-    entity?: EntitySelectorFilter | EntitySelectorFilter[];
+    entity?: EntitySelectorFilter | EntitySelectorFilter[]
 
     /**
      * When filter options are provided, the list of devices is filtered by devices that at least provide one entity that matches the given conditions.
      * https://www.home-assistant.io/docs/blueprint/selectors/#device-selector
      */
-    filter?: DeviceSelectorFilter | DeviceSelectorFilter[];
+    filter?: DeviceSelectorFilter | DeviceSelectorFilter[]
 
     /**
      * You can use filter parameter to filter devices".
      */
-    integration?: LegacySyntax;
+    integration?: LegacySyntax
 
     /**
      * You can use filter parameter to filter devices".
      */
-    manufacturer?: LegacySyntax;
+    manufacturer?: LegacySyntax
 
     /**
      * You can use filter parameter to filter devices".
      */
-    model?: LegacySyntax;
+    model?: LegacySyntax
 
     /**
      * Allows selecting multiple devices. If set to `true`, the resulting value of this selector will be a list instead of a single string value.
      * https://www.home-assistant.io/docs/blueprint/selectors/#device-selector
      */
-    multiple?: boolean;
-  } | null;
+    multiple?: boolean
+  } | null
 }
 
 export interface DurationSelector {
@@ -357,20 +357,20 @@ export interface DurationSelector {
      * When true, the duration selector will allow selecting days.
      * https://www.home-assistant.io/docs/blueprint/selectors/#duration-selector
      */
-    enable_day?: boolean;
+    enable_day?: boolean
 
     /**
      * When true, the duration selector will allow selecting milliseconds.
      * https://www.home-assistant.io/docs/blueprint/selectors/#duration-selector
      */
-    enable_millisecond?: boolean;
+    enable_millisecond?: boolean
 
     /**
      * Allow negative durations. Will default to False in HA Core 2025.6.0.
      * https://www.home-assistant.io/docs/blueprint/selectors/#duration-selector
      */
-    allow_negative?: boolean;
-  } | null;
+    allow_negative?: boolean
+  } | null
 }
 
 interface EntitySelectorFilter {
@@ -378,22 +378,22 @@ interface EntitySelectorFilter {
    * Can be set to an integration domain. Limits the list of devices that provide entities by the set integration domain.
    * https://www.home-assistant.io/docs/blueprint/selectors/#entity-selector
    */
-  integration?: Domain;
+  integration?: Domain
   /**
    * Limits the list of devices that provide entities of a certain domain.
    * https://www.home-assistant.io/docs/blueprint/selectors/#entity-selector
    */
-  domain?: Domain | Domain[];
+  domain?: Domain | Domain[]
   /**
    * Limits the list of entities to entities that have a certain device class.
    * https://www.home-assistant.io/docs/blueprint/selectors/#entity-selector
    */
-  device_class?: DeviceClasses | DeviceClasses[];
+  device_class?: DeviceClasses | DeviceClasses[]
   /**
    * Limits the list of entities to entities that have a certain supported feature.
    * https://www.home-assistant.io/docs/blueprint/selectors/#entity-selector
    */
-  supported_features?: SupportedFeature | SupportedFeature[];
+  supported_features?: SupportedFeature | SupportedFeature[]
 }
 
 export interface EntitySelector {
@@ -406,46 +406,46 @@ export interface EntitySelector {
      * List of entity IDs to exclude from the selectable list.
      * https://www.home-assistant.io/docs/blueprint/selectors/#entity-selector
      */
-    exclude_entities?: Entity[];
+    exclude_entities?: Entity[]
 
     /**
      * List of entity IDs to limit the selectable list to.
      * https://www.home-assistant.io/docs/blueprint/selectors/#entity-selector
      */
-    include_entities?: Entity[];
+    include_entities?: Entity[]
 
     /**
      * You can use filter parameter to filter entities".
      */
-    integration?: LegacySyntax;
+    integration?: LegacySyntax
 
     /**
      * You can use filter parameter to filter entities".
      */
-    domain?: LegacySyntax;
+    domain?: LegacySyntax
 
     /**
      * You can use filter parameter to filter entities".
      */
-    device_class?: LegacySyntax;
+    device_class?: LegacySyntax
 
     /**
      * When filter options are provided, the entities are limited by entities that at least match the given conditions.
      * https://www.home-assistant.io/docs/blueprint/selectors/#entity-selector
      */
-    filter?: EntitySelectorFilter | EntitySelectorFilter[];
+    filter?: EntitySelectorFilter | EntitySelectorFilter[]
     /**
      * Allows selecting multiple devices. If set to `true`, the resulting value of this selector will be a list instead of a single string value.
      * https://www.home-assistant.io/docs/blueprint/selectors/#entity-selector
      */
-    multiple?: boolean;
+    multiple?: boolean
 
     /**
      * Allows reordering of entities (only applies if `multiple` is set to `true`).
      * https://www.home-assistant.io/docs/blueprint/selectors/#entity-selector
      */
-    reorder?: boolean;
-  } | null;
+    reorder?: boolean
+  } | null
 }
 
 export interface FileSelector {
@@ -459,8 +459,8 @@ export interface FileSelector {
      * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file#accept
      * https://www.home-assistant.io/docs/blueprint/selectors/#file-selector
      */
-    accept: string;
-  };
+    accept: string
+  }
 }
 
 export interface FloorSelector {
@@ -473,20 +473,20 @@ export interface FloorSelector {
      * When device options are provided, the list of floors is filtered by floors that have at least one device matching the given conditions.
      * https://www.home-assistant.io/docs/blueprint/selectors/#floor-selector
      */
-    device?: DeviceSelectorFilter | DeviceSelectorFilter[];
+    device?: DeviceSelectorFilter | DeviceSelectorFilter[]
 
     /**
      * When entity options are provided, the list only includes floors that at least have one entity that matches the given conditions.
      * https://www.home-assistant.io/docs/blueprint/selectors/#floor-selector
      */
-    entity?: EntitySelectorFilter | EntitySelectorFilter[];
+    entity?: EntitySelectorFilter | EntitySelectorFilter[]
 
     /**
      * Allows selecting multiple floors. If set to true, the resulting value of this selector will be a list instead of a single string value.
      * https://www.home-assistant.io/docs/blueprint/selectors/#floor-selector
      */
-    multiple?: boolean;
-  } | null;
+    multiple?: boolean
+  } | null
 }
 
 export interface IconSelector {
@@ -499,8 +499,8 @@ export interface IconSelector {
      * Placeholder icon to show, when no icon is selected.
      * https://www.home-assistant.io/docs/blueprint/selectors/#icon-selector
      */
-    placeholder?: string;
-  } | null;
+    placeholder?: string
+  } | null
 }
 
 export interface LabelSelector {
@@ -513,8 +513,8 @@ export interface LabelSelector {
      * Allows selecting multiple labels. If set to true, the resulting value of this selector will be a list instead of a single string value
      * https://www.home-assistant.io/docs/blueprint/selectors/#label-selector
      */
-    multiple?: boolean;
-  } | null;
+    multiple?: boolean
+  } | null
 }
 
 export interface LanguageSelector {
@@ -527,20 +527,20 @@ export interface LanguageSelector {
      * A list of languages to pick from, this should be RFC 5646 languages codes.
      * https://www.home-assistant.io/docs/blueprint/selectors/#language-selector
      */
-    languages?: string[];
+    languages?: string[]
 
     /**
      * Should the name of the languages be shown in the language of the user, or in the language itself.
      * https://www.home-assistant.io/docs/blueprint/selectors/#language-selector
      */
-    native_name?: boolean;
+    native_name?: boolean
 
     /**
      * Should the options be sorted by name, if set to true, the order of the provided languages is kept.
      * https://www.home-assistant.io/docs/blueprint/selectors/#language-selector
      */
-    no_sort?: boolean;
-  } | null;
+    no_sort?: boolean
+  } | null
 }
 
 export interface LocationSelector {
@@ -553,14 +553,14 @@ export interface LocationSelector {
      * An optional icon to show on the map.
      * https://www.home-assistant.io/docs/blueprint/selectors/#location-selector
      */
-    icon?: string;
+    icon?: string
 
     /**
      * Allow selecting the radius of the location. If enabled, the radius will be returned in meters.
      * https://www.home-assistant.io/docs/blueprint/selectors/#location-selector
      */
-    radius?: boolean;
-  } | null;
+    radius?: boolean
+  } | null
 }
 
 export interface MediaSelector {
@@ -568,7 +568,7 @@ export interface MediaSelector {
    * The media selector is a powerful selector that allows a user to easily select media to play on a media device.
    * https://www.home-assistant.io/docs/blueprint/selectors/#media-selector
    */
-  media: null | Record<string, never>;
+  media: null | Record<string, never>
 }
 
 export interface NumberSelector {
@@ -581,32 +581,32 @@ export interface NumberSelector {
      * The maximum user-settable number value.
      * https://www.home-assistant.io/docs/blueprint/selectors/#number-selector
      */
-    max: number;
+    max: number
 
     /**
      * The minimal user-settable number value.
      * https://www.home-assistant.io/docs/blueprint/selectors/#number-selector
      */
-    min: number;
+    min: number
 
     /**
      * This can be either box or slider mode.
      * https://www.home-assistant.io/docs/blueprint/selectors/#number-selector
      */
-    mode?: "box" | "slider";
+    mode?: "box" | "slider"
 
     /**
      * The step value of the number value.
      * https://www.home-assistant.io/docs/blueprint/selectors/#number-selector
      */
-    step?: number;
+    step?: number
 
     /**
      * Unit of measurement in which the number value is expressed in.
      * https://www.home-assistant.io/docs/blueprint/selectors/#number-selector
      */
-    unit_of_measurement?: string;
-  };
+    unit_of_measurement?: string
+  }
 }
 
 export interface ObjectSelector {
@@ -614,7 +614,7 @@ export interface ObjectSelector {
    * The object selector can be used to input arbitrary data in YAML form. This is useful for e.g. lists and dictionaries like service data.
    * https://www.home-assistant.io/docs/blueprint/selectors/#object-selector
    */
-  object: null | Record<string, never>;
+  object: null | Record<string, never>
 }
 
 export interface QRCodeSelector {
@@ -627,20 +627,20 @@ export interface QRCodeSelector {
      * The data that should be represented in the QR code.
      * https://www.home-assistant.io/docs/blueprint/selectors/#qr-code-selector
      */
-    data: any;
+    data: any
 
     /**
      * The scale factor to use, this will make the QR code bigger or smaller.
      * https://www.home-assistant.io/docs/blueprint/selectors/#qr-code-selector
      */
-    scale?: PositiveInteger;
+    scale?: PositiveInteger
 
     /**
      * The error correction level of the QR code, with a higher error correction level the QR code can be scanned even when some pieces are missing.
      * https://www.home-assistant.io/docs/blueprint/selectors/#qr-code-selector
      */
-    error_correction_level?: "low" | "medium" | "quartile" | "high";
-  };
+    error_correction_level?: "low" | "medium" | "quartile" | "high"
+  }
 }
 
 export interface SelectSelector {
@@ -653,31 +653,31 @@ export interface SelectSelector {
      * Allows the user to enter and select a custom value (or multiple custom values in addition to the listed options if `multiple` is set to true).
      * https://www.home-assistant.io/docs/blueprint/selectors/#select-selector
      */
-    custom_value?: boolean;
+    custom_value?: boolean
 
     /**
      * This can be either `list` or `dropdown` mode. when not specificied, small lists (5 items or less), are displayed as radio buttons. When more items are added, a dropdown list is used.
      * https://www.home-assistant.io/docs/blueprint/selectors/#select-selector
      */
-    mode?: "list" | "dropdown";
+    mode?: "list" | "dropdown"
 
     /**
      * Allows selecting multiple options. If set to `true`, the resulting value of this selector will be a list instead of a single string value.
      * https://www.home-assistant.io/docs/blueprint/selectors/#select-selector
      */
-    multiple?: boolean;
+    multiple?: boolean
 
     /**
      * Display options in alphabetical order.
      * https://www.home-assistant.io/docs/blueprint/selectors/#select-selector
      */
-    sort?: boolean;
+    sort?: boolean
 
     /**
      * Translation key for internationalization support.
      * https://www.home-assistant.io/docs/blueprint/selectors/#select-selector
      */
-    translation_key?: string;
+    translation_key?: string
 
     /**
      * List of options that the user can choose from.
@@ -686,19 +686,19 @@ export interface SelectSelector {
     options:
       | string[]
       | {
-        /**
+          /**
            * The description to show in the UI for this item.
            * https://www.home-assistant.io/docs/blueprint/selectors/#select-selector
            */
-        label: string;
+          label: string
 
-        /**
+          /**
            * The value to return when this label is selected.
            * https://www.home-assistant.io/docs/blueprint/selectors/#select-selector
            */
-        value: string;
-      }[];
-  };
+          value: string
+        }[]
+  }
 }
 
 export interface StateSelector {
@@ -711,8 +711,8 @@ export interface StateSelector {
      * The entity ID of which a state can be selected from.
      * https://www.home-assistant.io/docs/blueprint/selectors/#state-selector
      */
-    entity_id: Entity;
-  };
+    entity_id: Entity
+  }
 }
 
 export interface TargetSelector {
@@ -725,14 +725,14 @@ export interface TargetSelector {
      * When device options are provided, the targets are limited by devices that at least match the given conditions.
      * https://www.home-assistant.io/docs/blueprint/selectors/#target-selector
      */
-    device?: DeviceSelectorFilter | DeviceSelectorFilter[];
+    device?: DeviceSelectorFilter | DeviceSelectorFilter[]
 
     /**
      * When entity options are provided, the targets are limited by entities that at least match the given conditions.
      * https://www.home-assistant.io/docs/blueprint/selectors/#target-selector
      */
-    entity?: EntitySelectorFilter | EntitySelectorFilter[];
-  } | null;
+    entity?: EntitySelectorFilter | EntitySelectorFilter[]
+  } | null
 }
 
 export interface TemplateSelector {
@@ -740,7 +740,7 @@ export interface TemplateSelector {
    * The template can be used for allowing the user to input a Jinja2 template.
    * https://www.home-assistant.io/docs/blueprint/selectors/#template-selector
    */
-  template: null | Record<string, never>;
+  template: null | Record<string, never>
 }
 
 export interface TextSelector {
@@ -753,25 +753,25 @@ export interface TextSelector {
      * Set to true to display the input as a multi-line text box on the user interface.
      * https://www.home-assistant.io/docs/blueprint/selectors/#text-selector
      */
-    multiline?: boolean;
+    multiline?: boolean
 
     /**
      * Allows adding list of text strings. If set to true, the resulting value of this selector will be a list instead of a single string value.
      * https://www.home-assistant.io/docs/blueprint/selectors/#text-selector
      */
-    multiple?: boolean;
+    multiple?: boolean
 
     /**
      * Allows adding a prefix to the input field.
      * https://www.home-assistant.io/docs/blueprint/selectors/#text-selector
      */
-    prefix?: string;
+    prefix?: string
 
     /**
      * Allows adding a suffix to the input field.
      * https://www.home-assistant.io/docs/blueprint/selectors/#text-selector
      */
-    suffix?: string;
+    suffix?: string
 
     /**
      * The type of input. This is a browser hint, which can improve the client side validation of the input. The value isn't validated by the backend.
@@ -790,14 +790,14 @@ export interface TextSelector {
       | "text"
       | "time"
       | "url"
-      | "week";
+      | "week"
 
     /**
      * Guides the browser on the type of information which should automatically fill the field. This supplies the HTML autocomplete attribute.
      * https://www.home-assistant.io/docs/blueprint/selectors/#text-selector
      */
-    autocomplete?: string;
-  } | null;
+    autocomplete?: string
+  } | null
 }
 
 export interface ThemeSelector {
@@ -810,8 +810,8 @@ export interface ThemeSelector {
      * Includes Home Assistant default theme in the list.
      * https://www.home-assistant.io/docs/blueprint/selectors/#theme-selector
      */
-    include_default?: boolean;
-  } | null;
+    include_default?: boolean
+  } | null
 }
 
 export interface TimeSelector {
@@ -819,7 +819,7 @@ export interface TimeSelector {
    * The time selector shows a time input that allows the user to specify a time of the day.
    * https://www.home-assistant.io/docs/blueprint/selectors/#time-selector
    */
-  time: null | Record<string, never>;
+  time: null | Record<string, never>
 }
 
 export interface TriggerSelector {
@@ -827,5 +827,5 @@ export interface TriggerSelector {
    * The triggers selector allows the user to input one or more triggers. On the user interface, the trigger part of the automation editor is shown.
    * https://www.home-assistant.io/docs/blueprint/selectors/#trigger-selector
    */
-  trigger: null | Record<string, never>;
+  trigger: null | Record<string, never>
 }

@@ -5,24 +5,21 @@
  * - https://github.com/home-assistant/core/blob/dev/homeassistant/components/blueprint/models.py
  * - https://github.com/home-assistant/core/blob/dev/homeassistant/components/blueprint/schemas.py
  */
-import { 
-  BinarySensorItem, 
-  SensorItem
-} from "./template";
-import { Selector } from "../selectors";
-import { AutomationItem } from "./automation";
-import { ScriptItem } from "./script";
-import { Data } from "../../types";
+import { BinarySensorItem, SensorItem } from "./template.js"
+import { Selector } from "../selectors.js"
+import { AutomationItem } from "./automation.js"
+import { ScriptItem } from "./script.js"
+import { Data } from "../../types.js"
 
-export type Domain = "blueprint";
-export type Schema = null;
+export type Domain = "blueprint"
+export type Schema = null
 
 export interface AutomationBlueprint extends AutomationItem {
   /**
    * The blueprint schema.
    * https://www.home-assistant.io/docs/blueprint/schema/#the-blueprint-schema
    */
-  blueprint: Blueprint;
+  blueprint: Blueprint
 }
 
 export interface ScriptBlueprint extends ScriptItem {
@@ -30,7 +27,7 @@ export interface ScriptBlueprint extends ScriptItem {
    * The blueprint schema.
    * https://www.home-assistant.io/docs/blueprint/schema/#the-blueprint-schema
    */
-  blueprint: Blueprint;
+  blueprint: Blueprint
 }
 
 export interface TemplateBlueprint {
@@ -38,24 +35,24 @@ export interface TemplateBlueprint {
    * The blueprint schema.
    * https://www.home-assistant.io/docs/blueprint/schema/#the-blueprint-schema
    */
-  blueprint: Blueprint;
+  blueprint: Blueprint
 
   /**
    * Variables that will be available inside your state definition.
    */
-  variables?: Data;
+  variables?: Data
 
   /**
    * The sensor definition. See template sensor documentation.
    * https://www.home-assistant.io/integrations/template/#sensor
    */
-  sensor?: SensorItem;
+  sensor?: SensorItem
 
   /**
    * The binary sensor definition. See template binary sensor documentation.
    * https://www.home-assistant.io/integrations/template/#binary-sensor
    */
-  binary_sensor?: BinarySensorItem;
+  binary_sensor?: BinarySensorItem
 }
 
 interface Blueprint {
@@ -63,19 +60,19 @@ interface Blueprint {
    * Defines the name of the author of this Blueprint
    * https://www.home-assistant.io/docs/blueprint/schema/#author
    */
-  author?: string;
+  author?: string
 
   /**
    * The description of the blueprint. While optional, this field is highly recommended. The description can include Markdown.
    * https://www.home-assistant.io/docs/blueprint/schema/#description
    */
-  description?: string;
+  description?: string
 
   /**
    * The domain name this blueprint provides a blueprint for.
    * https://www.home-assistant.io/docs/blueprint/schema/#domain
    */
-  domain: string;
+  domain: string
 
   /**
    * Home Assistant requirements for this Blueprint.
@@ -84,27 +81,27 @@ interface Blueprint {
     /**
      * The minimal version number of Home Assistant Core that is needed for this Blueprint.
      */
-    min_version?: string;
-  };
+    min_version?: string
+  }
 
   /**
    * These are the input fields that the consumer of your blueprint can provide using YAML definition, or via a configuration form in the UI.
    * https://www.home-assistant.io/docs/blueprint/schema/#input
    */
   input?: {
-    [key: string]: BlueprintInputSchema | BlueprintInputSectionSchema;
-  };
+    [key: string]: BlueprintInputSchema | BlueprintInputSectionSchema
+  }
 
   /**
    * The name of the blueprint. Keep this short and descriptive.
    * https://www.home-assistant.io/docs/blueprint/schema/#name
    */
-  name: string;
+  name: string
 
   /**
    * The URL to the online location where this Blueprint was imported from. Generally there is no need to add this, in the future this might be used for updating Blueprints.
    */
-  source_url?: string;
+  source_url?: string
 }
 
 interface BlueprintInputSchema {
@@ -112,25 +109,25 @@ interface BlueprintInputSchema {
    * The name of the input field.
    * https://www.home-assistant.io/docs/blueprint/schema/#name
    */
-  name?: string;
+  name?: string
 
   /**
    * A short description of the input field. Keep this short and descriptive.
    * https://www.home-assistant.io/docs/blueprint/schema/#description
    */
-  description?: string;
+  description?: string
 
   /**
    * The default value of this input, in case the input is not provided by the user of this blueprint.
    * https://www.home-assistant.io/docs/blueprint/schema/#default
    */
-  default?: any;
+  default?: any
 
   /**
    * The default value of this input, in case the input is not provided by the user of this blueprint.
    * https://www.home-assistant.io/docs/blueprint/schema/#default
    */
-  selector?: Selector;
+  selector?: Selector
 }
 
 interface BlueprintInputSectionSchema {
@@ -138,33 +135,33 @@ interface BlueprintInputSectionSchema {
    * A name for the section. If omitted the key of the section is used.
    * https://www.home-assistant.io/docs/blueprint/schema/#name
    */
-  name?: string;
+  name?: string
 
   /**
    * An optional description of this section, which will be displayed at the top of the section. The description can include Markdown.
    * https://www.home-assistant.io/docs/blueprint/schema/#description
    */
-  description?: string;
+  description?: string
 
   /**
    * An icon to display next to the name of the section.
    * https://www.home-assistant.io/docs/blueprint/schema/#icon
    */
-  icon?: string;
+  icon?: string
 
   /**
    * If true, the section will be collapsed by default. Useful for optional or less important inputs. All collapsed inputs must also have a defined default before they can be hidden.
    * https://www.home-assistant.io/docs/blueprint/schema/#collapsed
    */
-  collapsed?: boolean;
+  collapsed?: boolean
 
   /**
    * A dictionary of defined user inputs within this section.
    * https://www.home-assistant.io/docs/blueprint/schema/#input
    */
   input: {
-    [key: string]: BlueprintInputSchema;
-  };
+    [key: string]: BlueprintInputSchema
+  }
 }
 
 export interface BlueprintUsage {
@@ -174,10 +171,10 @@ export interface BlueprintUsage {
    * * config/blueprints/script/
    * * config/blueprints/template/
    */
-  path: string;
+  path: string
 
   /**
    * A dictionary of defined blueprint inputs as per blueprint definition.
    */
-  input?: { [key: string]: any };
+  input?: { [key: string]: any }
 }

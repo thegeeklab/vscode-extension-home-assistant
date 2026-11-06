@@ -2,14 +2,14 @@
  * Conversation integration
  * Source: https://github.com/home-assistant/core/blob/dev/homeassistant/components/conversation/__init__.py
  */
-export type Domain = "conversation";
+export type Domain = "conversation"
 
 export interface Schema {
   /**
    * Intents that the conversation integration should understand.
    * https://www.home-assistant.io/integrations/conversation#intents
    */
-  intents?: { [key: string]: string | string[] };
+  intents?: { [key: string]: string | string[] }
 }
 
 export interface CustomSentence {
@@ -17,7 +17,7 @@ export interface CustomSentence {
    * The language of this custom sentence file.
    * https://www.home-assistant.io/voice_control/custom_sentences_yaml/
    */
-  language: string;
+  language: string
 
   /**
    * Intents defined for this language.
@@ -38,73 +38,73 @@ export interface CustomSentence {
          * - Expansion rules: <rule_name>
          * - Permutations: (item1;item2)
          */
-        sentences: string[];
+        sentences: string[]
 
         /**
          * Optional fixed slots for the recognized intent.
          */
         slots?: {
-          [key: string]: string | number | string[] | number[];
-        };
+          [key: string]: string | number | string[] | number[]
+        }
 
         /**
          * Optional response key to use when this intent is matched.
          * If not provided, "default" is used.
          */
-        response?: string;
+        response?: string
 
         /**
          * Context requirements for the intent to match.
          * For example, to limit matching to entities with a specific domain.
          */
         requires_context?: {
-          [key: string]: string | string[];
-        };
+          [key: string]: string | string[]
+        }
 
         /**
          * Context to exclude from matching.
          * For example, to avoid matching entities with a specific domain.
          */
         excludes_context?: {
-          [key: string]: string | string[];
-        };
+          [key: string]: string | string[]
+        }
 
         /**
          * Local lists specific to this group of sentences.
          */
         lists?: {
           [key: string]:
-          | {
-            values: (
-              string
-              | {
-                in: string;
-                out: string | number;
-                context?: { [key: string]: string };
+            | {
+                values: (
+                  | string
+                  | {
+                      in: string
+                      out: string | number
+                      context?: { [key: string]: string }
+                    }
+                )[]
               }
-            )[];
-          }
-          | {
-            range: {
-              type?: "number" | "percentage" | "temperature";
-              from: number;
-              to: number;
-            };
-          }
-          | {
-            wildcard: boolean;
-          };
-        };
+            | {
+                range: {
+                  type?: "number" | "percentage" | "temperature"
+                  from: number
+                  to: number
+                }
+              }
+            | {
+                wildcard: boolean
+              }
+        }
 
         /**
          * Local expansion rules specific to this group of sentences.
          */
         expansion_rules?: {
-          [key: string]: string;
-        };
-      }[];
-    };
-  };
+          [key: string]: string
+        }
+      }[]
+    }
+  }
 
   /**
    * Customized responses for intents.
@@ -120,10 +120,10 @@ export interface CustomSentence {
          * Named responses for the intent.
          * Keys can be "default" or custom response names.
          */
-        [key: string]: string;
-      };
-    };
-  };
+        [key: string]: string
+      }
+    }
+  }
 
   /**
    * Optional lists of items that become alternatives in sentence templates.
@@ -132,39 +132,39 @@ export interface CustomSentence {
    */
   lists?: {
     [key: string]:
-    | {
-      values: (
-        string
-        | {
-          in: string;
-          out: string | number;
-          context?: { [key: string]: string };
+      | {
+          values: (
+            | string
+            | {
+                in: string
+                out: string | number
+                context?: { [key: string]: string }
+              }
+          )[]
         }
-      )[];
-    }
-    | {
-      range: {
-        type?: "number" | "percentage" | "temperature";
-        from: number;
-        to: number;
-      };
-    }
-    | {
-      wildcard: boolean;
-    };
-  };
+      | {
+          range: {
+            type?: "number" | "percentage" | "temperature"
+            from: number
+            to: number
+          }
+        }
+      | {
+          wildcard: boolean
+        }
+  }
 
   /**
    * Optional rules that are expanded in sentence templates.
    * Referenced as <rule_name> in sentences.
    */
   expansion_rules?: {
-    [key: string]: string;
-  };
+    [key: string]: string
+  }
 
   /**
    * Optional words that the intent recognizer can skip during recognition.
    * These words won't affect intent matching.
    */
-  skip_words?: string[];
+  skip_words?: string[]
 }

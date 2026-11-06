@@ -1,4 +1,4 @@
-import { ViewLayout } from "../types";
+import { ViewLayout } from "../types.js"
 
 /**
  * Lovelace Devices energy graph Card
@@ -10,15 +10,15 @@ export interface Schema {
    * The devices energy graph show the energy usage per device, it is sorted by usage.
    * https://www.home-assistant.io/lovelace/energy/#devices-energy-graph
    */
-  type: "energy-devices-graph";
+  type: "energy-devices-graph"
 
   /**
    * The card title.
    */
-  title?: string;
+  title?: string
 
   /**
    * Layout options for the view this card is in
    */
-  view_layout?: ViewLayout;
+  view_layout?: ViewLayout
 }

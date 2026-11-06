@@ -2,25 +2,25 @@
  * Cloud integration
  * Source: https://github.com/home-assistant/core/blob/dev/homeassistant/components/cloud/__init__.py
  */
-import { Domains, Entities, IncludeNamed } from "../../types";
+import { Domains, Entities, IncludeNamed } from "../../types.js"
 
-export type Domain = "cloud";
+export type Domain = "cloud"
 
 export interface Schema {
   /**
    * This option is for development, you do not need it in general.
    */
-  account_link_url?: string;
+  account_link_url?: string
 
   /**
    * This option is for development, you do not need it in general.
    */
-  acme_directory_server?: string;
+  acme_directory_server?: string
 
   /**
    * This option is for development, you do not need it in general.
    */
-  alexa_access_token_url?: string;
+  alexa_access_token_url?: string
 
   /**
    * Configure the Amazon Alexa integration.
@@ -31,29 +31,29 @@ export interface Schema {
      * Filters for entities to include/exclude from Alexa.
      * https://www.nabucasa.com/config/amazon_alexa/
      */
-    filter?: Filter;
+    filter?: Filter
 
     /**
      * Entity specific configuration for Alexa.
      * https://www.nabucasa.com/config/amazon_alexa/
      */
-    entity_config?: { [key: string]: AlexaEntity } | IncludeNamed;
-  };
+    entity_config?: { [key: string]: AlexaEntity } | IncludeNamed
+  }
 
   /**
    * This option is for development, you do not need it in general.
    */
-  cloudhook_create_url?: string;
+  cloudhook_create_url?: string
 
   /**
    * This option is for development, you do not need it in general.
    */
-  cognito_client_id?: string;
+  cognito_client_id?: string
 
   /**
    * This option is for development, you do not need it in general.
    */
-  google_actions_report_state_url?: string;
+  google_actions_report_state_url?: string
 
   /**
    * The Google Assistant integration allows users to control the entities via the Home Assistant Smart Home skill for Google Assistant.
@@ -64,88 +64,88 @@ export interface Schema {
      * Filters for entities to include/exclude from Google Assistant.
      * https://www.nabucasa.com/config/google_assistant/
      */
-    filter?: Filter;
+    filter?: Filter
 
     /**
      * Entity specific configuration for Google Assistant.
      * https://www.nabucasa.com/config/google_assistant/
      */
-    entity_config?: { [key: string]: GoogleEntity } | IncludeNamed;
-  };
+    entity_config?: { [key: string]: GoogleEntity } | IncludeNamed
+  }
 
   /**
    * This option is for development, you do not need it in general.
    */
-  mode?: "production" | "development";
+  mode?: "production" | "development"
 
   /**
    * This option is for development, you do not need it in general.
    */
-  region?: string;
+  region?: string
 
   /**
    * This option is for development, you do not need it in general.
    */
-  relayer?: string;
+  relayer?: string
 
   /**
    * This option is for development, you do not need it in general.
    */
-  remote_api_url?: string;
+  remote_api_url?: string
 
   /**
    * This option is for development, you do not need it in general.
    */
-  subscription_info_url?: string;
+  subscription_info_url?: string
 
   /**
    * This option is for development, you do not need it in general.
    */
-  user_pool_id?: string;
+  user_pool_id?: string
 
   /**
    * This option is for development, you do not need it in general.
    */
-  voice_api_url?: string;
+  voice_api_url?: string
 }
 
 interface Filter {
   /**
    * The list of domains to be excluded.
    */
-  exclude_domains?: Domains;
+  exclude_domains?: Domains
 
   /**
    * The list of entity ids to be excluded,
    */
-  exclude_entities?: Entities;
+  exclude_entities?: Entities
 
   /**
    * Exclude all entities matching a listed pattern (e.g., switch.garage_*).
    */
-  exclude_entity_globs?: string[];
+  exclude_entity_globs?: string[]
 
   /**
    * The list of domains to be included.
    */
-  include_domains?: Domains;
+  include_domains?: Domains
 
   /**
    * The list of entity ids to be included.
    */
-  include_entities?: Entities;
+  include_entities?: Entities
 
   /**
    * Include all entities matching a listed pattern (e.g., light.living_room_*).
    */
-  include_entity_globs?: string[];
+  include_entity_globs?: string[]
 }
 
 interface AlexaEntity {
   /**
    * Description of entity to show in Alexa.
    */
-  description?: string;
+  description?: string
 
   /**
    * The display category to use in Alexa.
@@ -204,27 +204,27 @@ interface AlexaEntity {
     | "VEHICLE"
     | "WASHER"
     | "WATER_HEATER"
-    | "WEARABLE";
+    | "WEARABLE"
 
   /**
    * Name of entity to show in Alexa.
    */
-  name?: string;
+  name?: string
 }
 
 interface GoogleEntity {
   /**
    * Aliases that can also be used to refer to this entity.
    */
-  aliases?: string | string[];
+  aliases?: string | string[]
 
   /**
    * Name of entity to show in Google Assistant.
    */
-  name?: string;
+  name?: string
 
   /**
    * Hint for Google Assistant in which room this entity is.
    */
-  room?: string;
+  room?: string
 }

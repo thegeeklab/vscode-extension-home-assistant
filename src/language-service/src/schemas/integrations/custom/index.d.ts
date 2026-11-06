@@ -1,1 +1,1 @@
-export * as HACS from "./hacs";
+export * as HACS from "./hacs.js"

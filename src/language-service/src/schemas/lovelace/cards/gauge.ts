@@ -6,74 +6,74 @@
  *  - https://github.com/home-assistant/frontend/blob/dev/src/data/lovelace.ts
  */
 
-import { Entity } from "../../types";
-import { ViewLayout } from "../types";
+import { Entity } from "../../types.js"
+import { ViewLayout } from "../types.js"
 
 export interface Schema {
   /**
    * The Gauge card is a basic card that allows visually seeing sensor data.
    * https://www.home-assistant.io/lovelace/gauge/
    */
-  type: "gauge";
+  type: "gauge"
 
   /**
    * Entity id to show.
    * https://www.home-assistant.io/lovelace/gauge/#entity
    */
-  entity: Entity;
+  entity: Entity
 
   /**
    * Maximum value for graph.
    * https://www.home-assistant.io/lovelace/gauge/#max
    */
-  max?: number;
+  max?: number
 
   /**
    * Minimum value for graph.
    * https://www.home-assistant.io/lovelace/gauge/#min
    */
-  min?: number;
+  min?: number
 
   /**
    * Name of Gauge Entity.
    * https://www.home-assistant.io/lovelace/gauge/#name
    */
-  name?: string;
+  name?: string
 
   /**
    * Show the gauge as a needle gauge.
    * https://www.home-assistant.io/lovelace/gauge/#needle
    */
-  needle?: boolean;
+  needle?: boolean
 
   /**
    * List of colors and their corresponding start values. Segments will override the severity settings.
    * https://www.home-assistant.io/dashboards/gauge/#segments
    */
-  segments?: Segment[];
+  segments?: Segment[]
 
   /**
    * Allows setting of colors for different numbers.
    * https://www.home-assistant.io/lovelace/gauge/#severity
    */
-  severity?: Severity;
+  severity?: Severity
 
   /**
    * Set to any theme within themes.yaml.
    * https://www.home-assistant.io/lovelace/gauge/#theme
    */
-  theme?: string;
+  theme?: string
 
   /**
    * Unit of Measurement given to data.
    * https://www.home-assistant.io/lovelace/gauge/#unit
    */
-  unit?: string;
+  unit?: string
 
   /**
    * Layout options for the view this card is in
    */
-  view_layout?: ViewLayout;
+  view_layout?: ViewLayout
 }
 
 interface Severity {
@@ -81,19 +81,19 @@ interface Severity {
    * Value from which to start green color.
    * https://www.home-assistant.io/lovelace/gauge/#green
    */
-  green?: number;
+  green?: number
 
   /**
    * Value from which to start red color.
    * https://www.home-assistant.io/lovelace/gauge/#red
    */
-  red?: number;
+  red?: number
 
   /**
    * Value from which to start yellow color.
    * https://www.home-assistant.io/lovelace/gauge/#yellow
    */
-  yellow?: number;
+  yellow?: number
 }
 
 interface Segment {
@@ -101,11 +101,11 @@ interface Segment {
    * Value from which to start the color.
    * https://www.home-assistant.io/dashboards/gauge/#from
    */
-  from: number;
+  from: number
 
   /**
    * Value from which to start red color.
    * https://www.home-assistant.io/dashboards/gauge/#red
    */
-  color: string;
+  color: string
 }

@@ -2,5 +2,5 @@
     "files.associations": {
         "*.yaml": "home-assistant"
     },
-    "vscode-home-assistant.devMockConnection": true
+    "home-assistant.devMockConnection": true
 }

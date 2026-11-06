@@ -1,103 +1,32 @@
-<h1 align="center">
+# vscode-extension-home-assistant
 
-<img src="https://raw.githubusercontent.com/keesschollaart81/vscode-home-assistant/dev/assets/header.png" alt="Home Assistant Config Helper for Visual Studio Code"/>
+Home Assistant Config Helper for Visual Studio Code.
 
-</h1>
+[![License: MIT](https://img.shields.io/github/license/thegeeklab/vscode-extension-home-assistant?logo=github&logoColor=white)](https://github.com/thegeeklab/vscode-extension-home-assistant/blob/main/LICENSE)
 
-# Getting started
+A VS Code extension that provides completion, validation and schema support for [Home Assistant](https://www.home-assistant.io/) configurations.
 
-1. Install via the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=keesschollaart.vscode-home-assistant)
+## Features
 
-2. Open your (local copy of the) Home Assistant Configuration with VS Code
+- **Completion** for entity IDs, services, scenes and triggers when connected to a Home Assistant instance.
+- **Validation and completion** for the Home Assistant configuration and Lovelace schema, including deprecation warnings and schema documentation.
+- **Go to Definition** for `!include` directives, secrets and scripts.
+- **Snippets** for common automation and script structures.
+- **Commands** to reload integrations, check the configuration and render templates.
+- **Template rendering** to evaluate Jinja templates via the Home Assistant API.
 
-3. Configure the connection to Home Assistant via the HA Section in the VS Code Settings UI
+## Getting started
 
-   More details in [the How-To in the Wiki](https://github.com/keesschollaart81/vscode-home-assistant/wiki/Configure-connection-to-HA)
+1. Install the extension from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=thegeeklab.home-assistant).
+2. Open your Home Assistant configuration folder with VS Code.
+3. Configure the connection to Home Assistant in the VS Code settings.
 
-4. Enjoy the features showcased below 👇
+## Contributors
 
-5. Continue reading in the Wiki:
+Special thanks to all [contributors](https://github.com/thegeeklab/vscode-extension-home-assistant/graphs/contributors). If you would like to contribute, please see the [instructions](https://github.com/thegeeklab/vscode-extension-home-assistant/blob/main/CONTRIBUTING.md).
 
-   - [Configure connection to HA](https://github.com/keesschollaart81/vscode-home-assistant/wiki/Configure-connection-to-HA)
-   - [VS Code Remote SSH](https://github.com/keesschollaart81/vscode-home-assistant/wiki/VS-Code-Remote-SSH)
-   - [Your config, local or remote?](https://github.com/keesschollaart81/vscode-home-assistant/wiki/Your-config,-local-or-remote%3F)
-   - [The troubleshooting guide](https://github.com/keesschollaart81/vscode-home-assistant/wiki/Troubleshooting)
+This project is a fork of [keesschollaart81/vscode-home-assistant](https://github.com/keesschollaart81/vscode-home-assistant) from Kees Schollaart and Franck Nijhof. Thanks for your work.
 
-# Features
+## License
 
-## Completion for Entity IDs, Actions, Scenes and Triggers
-
-When connected with your Home Assistant server, entity IDs and actions will be auto-completed.
-
-<img src="https://raw.githubusercontent.com/keesschollaart81/vscode-home-assistant/dev/assets/entity_service_completion.gif">
-
-## Completion & Validation for Configuration & Lovelace Schema
-
-Most of the scheme's of Home Assistant will be validated and things like properties, values and enums will be auto-completed. This extension understands the behaviour of Home Assistant '!include...' behaviour and use this to provide scoped validation for all your files.
-
-<img src="https://raw.githubusercontent.com/keesschollaart81/vscode-home-assistant/dev/assets/schema_validation_completion.gif">
-
-Deprecation Warnings:
-
-<img src="https://raw.githubusercontent.com/keesschollaart81/vscode-home-assistant/dev/assets/deprecation-warnings.png">
-
-Schema Documentation
-
-<img src="https://raw.githubusercontent.com/keesschollaart81/vscode-home-assistant/dev/assets/schema-documentation.png">
-
-## Go to Definition for Includes
-
-Easy navigate between your files references via the different !include... tags using 'f12' / 'Go to Definition'.
-
-<img src="https://raw.githubusercontent.com/keesschollaart81/vscode-home-assistant/dev/assets/go_to_definition.gif">
-
-## Snippets
-
-Snippets allow you to create commonly used data structures very quickly.
-
-<img src="https://raw.githubusercontent.com/keesschollaart81/vscode-home-assistant/dev/assets/snippet.gif">
-
-## Commands
-
-Commands allow you to quickly interact with Home Assistant! Find them using Cmd+shift+P and type 'Home Assistant'
-
-## Render templates
-
-Evaluate jinja templates via Home Assistant's API and see how they would render.
-
-![image](https://user-images.githubusercontent.com/6755359/69496084-6b089d80-0ece-11ea-8496-50251b91732f.png)
-
-# Contribution
-
-- [How to update the schemas](https://github.com/keesschollaart81/vscode-home-assistant/wiki/HowTo:-Update-the-schema's)
-- [Local Development](https://github.com/keesschollaart81/vscode-home-assistant/wiki/Local-development-of-this-Extension)
-
-# Release Notes
-
-Read all the recent changes in the [GitHub releases section](https://github.com/keesschollaart81/vscode-home-assistant/releases)
-
-# Feedback / Ideas
-
-Create an [issue](https://github.com/keesschollaart81/vscode-home-assistant/issues/new/choose), reach out to me on [Twitter](https://twitter.com/keesschollaart) or the [Home Assistant Discord](https://discord.gg/c5DvZ4e).
-
-# Things to do / up for grabs
-
-- [ ] Go to Definition for entities, scripts and automations
-- [ ] Check local config with HA Server
-
-# Telemetry
-
-This extension collects telemetry data to help us build a better experience for
-using VS Code with Home Assistant. We use [vscode-extension-telemetry](https://github.com/Microsoft/vscode-extension-telemetry),
-which reports the following data:
-
-- Extension name
-- Extension version
-- Machine ID and session ID from VS Code
-- Operating system
-- Platform version
-
-Additionally, if the language server fails to activate, we report the diagnostic
-data the language server produces. The extension respects the `telemetry.enableTelemetry`
-setting, which you can learn more about at VS Code's
-[telemetry FAQ](https://code.visualstudio.com/docs/supporting/faq#_how-to-disable-telemetry-reporting).
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/thegeeklab/vscode-extension-home-assistant/blob/main/LICENSE) file for details.

@@ -1,4 +1,4 @@
-import { ViewLayout } from "../types";
+import { ViewLayout } from "../types.js"
 
 /**
  * Lovelace Solar production graph Card
@@ -10,15 +10,15 @@ export interface Schema {
    * The solar production graph card shows the amount of energy your solar panels have produced per source, and if setup and available the forecast of the solar production.
    * https://www.home-assistant.io/lovelace/energy/#solar-production-graph
    */
-  type: "energy-solar-graph";
+  type: "energy-solar-graph"
 
   /**
    * The card title.
    */
-  title?: string;
+  title?: string
 
   /**
    * Layout options for the view this card is in
    */
-  view_layout?: ViewLayout;
+  view_layout?: ViewLayout
 }

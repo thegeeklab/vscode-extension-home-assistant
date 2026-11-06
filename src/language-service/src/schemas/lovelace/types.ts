@@ -1,7 +1,7 @@
-import { Entity } from "../types";
-import * as cards from "./cards";
+import { Entity } from "../types.js"
+import * as cards from "./cards/index.js"
 
-export type CardsFile = Card | Card[];
+export type CardsFile = Card | Card[]
 
 export type Card =
   | cards.AlarmPanel.Schema
@@ -47,34 +47,34 @@ export type Card =
   | cards.Thermostat.Schema
   | cards.Tile.Schema
   | cards.VerticalStack.Schema
-  | cards.WeatherForecast.Schema;
+  | cards.WeatherForecast.Schema
 
 export interface EntityConfig {
-  type?: string;
+  type?: string
 
   /**
    * Home Assistant entity ID.
    * https://www.home-assistant.io/lovelace/entities/#entity
    */
-  entity: Entity;
+  entity: Entity
 
   /**
    * Overwrites friendly name.
    * https://www.home-assistant.io/lovelace/entities/#name
    */
-  name?: string;
+  name?: string
 
   /**
    * Overwrites icon or entity picture.
    * https://www.home-assistant.io/lovelace/entities/#icon
    */
-  icon?: string;
+  icon?: string
 
   /**
    * Overwrites entity picture.
    * https://www.home-assistant.io/lovelace/entities/#image
    */
-  image?: string;
+  image?: string
 }
 
 export interface Condition {
@@ -82,19 +82,19 @@ export interface Condition {
    * Home Assistant entity ID.
    * https://www.home-assistant.io/lovelace/conditional/#entity
    */
-  entity: Entity;
+  entity: Entity
 
   /**
    * Entity state is equal to this value.
    * https://www.home-assistant.io/lovelace/conditional/#state
    */
-  state?: string;
+  state?: string
 
   /**
    * Entity state is unequal to this value.
    * https://www.home-assistant.io/lovelace/conditional/#state_not
    */
-  state_not?: string;
+  state_not?: string
 }
 
 export interface Badge {
@@ -102,8 +102,8 @@ export interface Badge {
    * Badges are widgets that sit at the top of a Lovelace panel, above all the cards.
    * https://www.home-assistant.io/lovelace/badges/
    */
-  type?: string;
-  [key: string]: any;
+  type?: string
+  [key: string]: any
 }
 
 /**
@@ -114,5 +114,5 @@ export interface ViewLayout {
    * Defines the position of the card in an sidebar view.
    * https://www.home-assistant.io/lovelace/sidebar/#view_layoutposition
    */
-  position?: "main" | "sidebar";
+  position?: "main" | "sidebar"
 }

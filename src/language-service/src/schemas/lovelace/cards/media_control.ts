@@ -5,30 +5,30 @@
  *  - https://github.com/home-assistant/frontend/blob/dev/src/panels/lovelace/cards/types.ts
  *  - https://github.com/home-assistant/frontend/blob/dev/src/data/lovelace.ts
  */
-import { MediaPlayerEntity } from "../../types";
-import { ViewLayout } from "../types";
+import { MediaPlayerEntity } from "../../types.js"
+import { ViewLayout } from "../types.js"
 
 export interface Schema {
   /**
    * The Media Control card is used to display Media Player entities on an interface with easy to use controls.
    * https://www.home-assistant.io/lovelace/media-control/
    */
-  type: "media-control";
+  type: "media-control"
 
   /**
    * A media player entity_id.
    * https://www.home-assistant.io/lovelace/media-control/#entity
    */
-  entity: MediaPlayerEntity;
+  entity: MediaPlayerEntity
 
   /**
    * Overwrite friendly name.
    * https://www.home-assistant.io/lovelace/media-control/#name
    */
-  name?: string;
+  name?: string
 
   /**
    * Layout options for the view this card is in
    */
-  view_layout?: ViewLayout;
+  view_layout?: ViewLayout
 }

@@ -1,4 +1,4 @@
-import { ViewLayout } from "../types";
+import { ViewLayout } from "../types.js"
 
 /**
  * Lovelace Solar consumed gauge Card
@@ -10,15 +10,15 @@ export interface Schema {
    * The solar consumed gauge represents how much of the solar energy was not used by your home and was returned to the grid.
    * https://www.home-assistant.io/lovelace/energy/#solar-consumed-gauge
    */
-  type: "energy-grid-neutrality-gauge";
+  type: "energy-grid-neutrality-gauge"
 
   /**
    * The card title.
    */
-  title?: string;
+  title?: string
 
   /**
    * Layout options for the view this card is in
    */
-  view_layout?: ViewLayout;
+  view_layout?: ViewLayout
 }

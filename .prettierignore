@@ -1,5 +1,7 @@
-.vscode-test/
-node_modules
+LICENSE.md
 out
-src/language-service/dist
+dist
+test-workspace
+test-ha-detection
+test-non-ha-detection
 src/language-service/src/schemas/json

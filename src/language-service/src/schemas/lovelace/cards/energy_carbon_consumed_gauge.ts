@@ -1,4 +1,4 @@
-import { ViewLayout } from "../types";
+import { ViewLayout } from "../types.js"
 
 /**
  * Lovelace Carbon consumed gauge Card
@@ -10,15 +10,15 @@ export interface Schema {
    * The carbon consumed gauge card represents how much of the energy consumed by your home was generated using non-fossil fuels like solar, wind and nuclear.
    * https://www.home-assistant.io/lovelace/energy/#carbon-consumed-gauge
    */
-  type: "energy-carbon-consumed-gauge";
+  type: "energy-carbon-consumed-gauge"
 
   /**
    * The card title.
    */
-  title?: string;
+  title?: string
 
   /**
    * Layout options for the view this card is in
    */
-  view_layout?: ViewLayout;
+  view_layout?: ViewLayout
 }

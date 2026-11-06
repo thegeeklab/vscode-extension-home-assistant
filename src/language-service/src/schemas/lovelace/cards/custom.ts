@@ -12,5 +12,5 @@ export interface Schema {
   /**
    * @TJS-pattern custom:(.*)$
    */
-  type: string;
+  type: string
 }

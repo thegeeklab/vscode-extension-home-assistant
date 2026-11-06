@@ -1,21 +1,21 @@
-import { MarkedString } from "vscode-languageserver-protocol";
+import { MarkedString } from "vscode-languageserver-protocol"
 import {
   JSONWorkerContribution,
   JSONPath,
-  CompletionsCollector,
-} from "vscode-json-languageservice";
-import { IHaConnection } from "../home-assistant/haConnection";
+  CompletionsCollector
+} from "vscode-json-languageservice"
+import { IHaConnection } from "../home-assistant/haConnection.js"
 
 export class LabelCompletionContribution implements JSONWorkerContribution {
-  public static propertyMatches: string[] = ["label_id", "label"];
+  public static propertyMatches: string[] = ["label_id", "label"]
 
   constructor(private haConnection: IHaConnection) {}
 
   public collectDefaultCompletions(
     _resource: string,
-    _result: CompletionsCollector,
+    _result: CompletionsCollector
   ): Thenable<any> {
-    return Promise.resolve(null);
+    return Promise.resolve(null)
   }
 
   public collectPropertyCompletions = async (
@@ -24,56 +24,49 @@ export class LabelCompletionContribution implements JSONWorkerContribution {
     _currentWord: string,
     _addValue: boolean,
     _isLast: boolean,
-    result: CompletionsCollector,
+    result: CompletionsCollector
   ): Promise<any> => {
     if (location.length < 2) {
-      return;
+      return
     }
-    const currentNode = location[location.length - 1];
-    const parentNode = location[location.length - 2]; // in case or arrays, currentNode is the indexer for the array position
+    const currentNode = location[location.length - 1]
+    const parentNode = location[location.length - 2] // in case or arrays, currentNode is the indexer for the array position
     if (
       !LabelCompletionContribution.propertyMatches.some(
-        (x) =>
-          x === currentNode ||
-          (!Number.isNaN(+currentNode) && x === parentNode),
+        (x) => x === currentNode || (!Number.isNaN(+currentNode) && x === parentNode)
       )
     ) {
-      return;
+      return
     }
-    const labelCompletions = await this.haConnection.getLabelCompletions();
+    const labelCompletions = await this.haConnection.getLabelCompletions()
     labelCompletions.forEach((c) => {
       if (c.insertText === undefined) {
-        c.insertText = c.label;
+        c.insertText = c.label
       }
-      result.add(c as any);
-    });
-  };
+      result.add(c as any)
+    })
+  }
 
   public collectValueCompletions = async (
     _resource: string,
     _location: JSONPath,
     currentKey: string,
-    result: CompletionsCollector,
+    result: CompletionsCollector
   ): Promise<any> => {
-    if (
-      !LabelCompletionContribution.propertyMatches.some((x) => x === currentKey)
-    ) {
-      return;
+    if (!LabelCompletionContribution.propertyMatches.some((x) => x === currentKey)) {
+      return
     }
 
-    const labelCompletions = await this.haConnection.getLabelCompletions();
+    const labelCompletions = await this.haConnection.getLabelCompletions()
     labelCompletions.forEach((c) => {
       if (c.insertText === undefined) {
-        c.insertText = c.label;
+        c.insertText = c.label
       }
-      result.add(c as any);
-    });
-  };
+      result.add(c as any)
+    })
+  }
 
-  public getInfoContribution(
-    _resource: string,
-    _location: JSONPath,
-  ): Thenable<MarkedString[]> {
-    return Promise.resolve([]);
+  public getInfoContribution(_resource: string, _location: JSONPath): Thenable<MarkedString[]> {
+    return Promise.resolve([])
   }
 }
