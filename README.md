@@ -15,17 +15,41 @@ A VS Code extension that provides completion, validation and schema support for 
 - **Commands** to reload integrations, check the configuration and render templates.
 - **Template rendering** to evaluate Jinja templates via the Home Assistant API.
 
-## Getting started
+## Usage
 
-1. Install the extension from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=thegeeklab.home-assistant).
-2. Open your Home Assistant configuration folder with VS Code.
-3. Configure the connection to Home Assistant in the VS Code settings.
+Open your Home Assistant configuration folder with VS Code. The extension automatically detects Home Assistant workspaces by their `configuration.yaml` and associates YAML files with the `home-assistant` language, enabling completion, validation, go-to-definition and snippets.
+
+To enable completion and validation against your live instance, connect the extension to Home Assistant using the **Home Assistant: Manage Authentication** command and provide your instance URL and a long-lived access token. Credentials are stored in VS Code `SecretStorage`.
+
+### Configuration
+
+The following settings are available in your `settings.json`:
+
+```json
+{
+  "home-assistant.ignoreCertificates": false,
+  "home-assistant.disableAutomaticFileAssociation": false,
+  "home-assistant.autoRenderTemplates": true,
+  "home-assistant.devMockConnection": false
+}
+```
+
+| Setting                                          | Default | Description                                                                   |
+| ------------------------------------------------ | ------- | ----------------------------------------------------------------------------- |
+| `home-assistant.ignoreCertificates`              | `false` | Enable insecure transport to connect over HTTPS with an invalid certificate.  |
+| `home-assistant.disableAutomaticFileAssociation` | `false` | Disable automatic association of YAML files with the Home Assistant language. |
+| `home-assistant.autoRenderTemplates`             | `true`  | Render Home Assistant templates on hover.                                     |
+| `home-assistant.devMockConnection`               | `false` | Use a static mock connection instead of a live instance (for development).    |
 
 ## Contributors
 
 Special thanks to all [contributors](https://github.com/thegeeklab/vscode-extension-home-assistant/graphs/contributors). If you would like to contribute, please see the [instructions](https://github.com/thegeeklab/vscode-extension-home-assistant/blob/main/CONTRIBUTING.md).
 
 This project is a fork of [keesschollaart81/vscode-home-assistant](https://github.com/keesschollaart81/vscode-home-assistant) from Kees Schollaart and Franck Nijhof. Thanks for your work.
+
+## AI Disclaimer
+
+Artificial Intelligence (AI) tools are utilized in the development of this project. This includes AI assistance for writing and reviewing code, as well as generating the extension's icon. All AI-generated contributions are carefully reviewed and tested by human maintainers.
 
 ## License
 
