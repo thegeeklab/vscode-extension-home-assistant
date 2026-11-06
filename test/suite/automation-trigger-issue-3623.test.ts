@@ -1,12 +1,13 @@
 import * as assert from "assert"
 import * as vscode from "vscode"
+import { EXTENSION_ID } from "../helpers/constants.js"
 import { waitForDiagnostics } from "../helpers/waitFor.js"
 
 // Test for issue #3623: Entity in trigger incorrectly validated as action
 suite("Automation Trigger Issue #3623", () => {
   suiteSetup(async () => {
     // Activate the extension
-    await vscode.extensions.getExtension("thegeeklab.home-assistant")?.activate()
+    await vscode.extensions.getExtension(EXTENSION_ID)?.activate()
 
     vscode.window.showInformationMessage("Starting automation trigger issue #3623 tests...")
   })
@@ -30,7 +31,7 @@ action:
 
     const document = await vscode.workspace.openTextDocument({
       content: testContent,
-      language: "yaml"
+      language: "home-assistant"
     })
 
     await vscode.window.showTextDocument(document)
@@ -108,7 +109,7 @@ action:
 
     const document = await vscode.workspace.openTextDocument({
       content: testContent,
-      language: "yaml"
+      language: "home-assistant"
     })
 
     await vscode.window.showTextDocument(document)

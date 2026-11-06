@@ -1,159 +1,52 @@
 import * as assert from "assert"
 import { TextDocument } from "vscode-languageserver-textdocument"
-import { CompletionItem, CompletionItemKind, MarkupContent } from "vscode-languageserver-protocol"
-import { IHaConnection } from "../../src/language-service/src/home-assistant/haConnection.js"
+import { CompletionItemKind, MarkupContent } from "vscode-languageserver-protocol"
 import { HomeAssistantLanguageService } from "../../src/language-service/src/haLanguageService.js"
-import { getLanguageService } from "yaml-language-server"
-import { SchemaServiceForIncludes } from "../../src/language-service/src/schemas/schemaService.js"
-import { HomeAssistantConfiguration } from "../../src/language-service/src/haConfig/haConfig.js"
-
-class MockFileAccessor {
-  async getFileContents(_uri: string): Promise<string> {
-    return ""
-  }
-
-  getRelativePath(_fileUri: string, _includePath: string): string {
-    return ""
-  }
-
-  getRelativePathAsFileUri(_fileUri: string, _includePath: string): string {
-    return ""
-  }
-
-  async getFilesInFolderRelativeFromAsFileUri(
-    _folderPath: string,
-    _fileUri: string
-  ): Promise<string[]> {
-    return []
-  }
-}
-
-// Mock Home Assistant connection with predefined floors
-class MockHaConnection implements IHaConnection {
-  private mockFloorCompletions: CompletionItem[] = [
-    {
-      label: "ground_floor",
-      detail: "Ground Floor",
-      kind: CompletionItemKind.Variable,
-      data: { isFloor: true },
-      documentation: {
-        kind: "markdown",
-        value: "**ground_floor**\n\nName: Ground Floor\n\n"
-      } as MarkupContent
-    },
-    {
-      label: "first_floor",
-      detail: "First Floor",
-      kind: CompletionItemKind.Variable,
-      data: { isFloor: true },
-      documentation: {
-        kind: "markdown",
-        value: "**first_floor**\n\nName: First Floor\n\n"
-      } as MarkupContent
-    },
-    {
-      label: "basement",
-      detail: "Basement",
-      kind: CompletionItemKind.Variable,
-      data: { isFloor: true },
-      documentation: {
-        kind: "markdown",
-        value: "**basement**\n\nName: Basement\n\n"
-      } as MarkupContent
-    }
-  ]
-
-  async tryConnect(): Promise<void> {
-    // Mock implementation
-  }
-
-  async notifyConfigUpdate(_conf: any): Promise<void> {
-    // Mock implementation
-  }
-
-  async getAreaCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getDeviceCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getDomainCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getEntityCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getFloorCompletions(): Promise<CompletionItem[]> {
-    return this.mockFloorCompletions
-  }
-
-  async getLabelCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getServiceCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getHassEntities(): Promise<any> {
-    return {}
-  }
-
-  async getHassDevices(): Promise<any> {
-    return {}
-  }
-
-  async getHassEntityRegistry(): Promise<any> {
-    return {}
-  }
-
-  async getHassServices(): Promise<any> {
-    return {}
-  }
-
-  async resolveEntityCompletionDocumentation(_entityId: string): Promise<any> {
-    return undefined
-  }
-}
+import { createMockLanguageService, MockFileAccessor, MockHaConnection } from "../helpers/mocks.js"
 
 suite("Floor Validation Tests", () => {
   let languageService: HomeAssistantLanguageService
-  let mockConnection: MockHaConnection
 
   setup(async () => {
-    mockConnection = new MockHaConnection()
-
-    const fileAccessor = new MockFileAccessor()
-    const haConfig = new HomeAssistantConfiguration(fileAccessor as any)
-    const yamlLanguageService = getLanguageService({
-      schemaRequestService: async () => "",
-      workspaceContext: null,
-      telemetry: undefined
+    const connection = new MockHaConnection({
+      floorCompletions: [
+        {
+          label: "ground_floor",
+          detail: "Ground Floor",
+          kind: CompletionItemKind.Variable,
+          data: { isFloor: true },
+          documentation: {
+            kind: "markdown",
+            value: "**ground_floor**\n\nName: Ground Floor\n\n"
+          } as MarkupContent
+        },
+        {
+          label: "first_floor",
+          detail: "First Floor",
+          kind: CompletionItemKind.Variable,
+          data: { isFloor: true },
+          documentation: {
+            kind: "markdown",
+            value: "**first_floor**\n\nName: First Floor\n\n"
+          } as MarkupContent
+        },
+        {
+          label: "basement",
+          detail: "Basement",
+          kind: CompletionItemKind.Variable,
+          data: { isFloor: true },
+          documentation: {
+            kind: "markdown",
+            value: "**basement**\n\nName: Basement\n\n"
+          } as MarkupContent
+        }
+      ]
     })
 
-    // Create language service with mock connection
-    languageService = new HomeAssistantLanguageService(
-      yamlLanguageService,
-      haConfig,
-      mockConnection as any, // Type assertion to bypass strict typing
-      [],
-      await SchemaServiceForIncludes.create(),
-      () => {
-        /* mock sendDiagnostics */
-      },
-      () => {
-        /* mock diagnoseAllFiles */
-      },
-      { isConfigured: true, autoRenderTemplates: true } as any // Mock configuration service
-    )
+    languageService = await createMockLanguageService(connection, new MockFileAccessor())
   })
 
   test("Floor validation identifies unknown floors", async () => {
-    // Create a test document with both known and unknown floors
     const testContent = `
 automation:
   - alias: "Test Floor Validation"
@@ -192,11 +85,8 @@ group:
       testContent
     )
 
-    // Get diagnostics from language service (this will call our validation)
     const diagnostics = await languageService.getDiagnostics(document)
 
-    // Filter for floor validation diagnostics
-    // We need to deduplicate the results because the test is getting multiple diagnostics for the same issue
     const floorDiagnostics = Array.from(
       new Set(
         diagnostics
@@ -210,14 +100,12 @@ group:
       console.log(`  - Line ${diagnostic.range.start.line + 1}: ${diagnostic.message}`)
     }
 
-    // We should have exactly 3 unknown floor diagnostics
     assert.strictEqual(
       floorDiagnostics.length,
       3,
       `Expected 3 unknown floor diagnostics, got ${floorDiagnostics.length}`
     )
 
-    // Check that the diagnostics are for the correct floors
     const expectedUnknownFloors = ["non_existing_floor", "fake_floor", "non_existing"]
 
     const foundUnknownFloors = floorDiagnostics
@@ -234,7 +122,6 @@ group:
       )
     }
 
-    // Verify that known floors don't generate diagnostics
     const knownFloors = ["ground_floor", "first_floor", "basement"]
     for (const knownFloor of knownFloors) {
       assert.ok(
@@ -278,7 +165,6 @@ automation:
 
     const diagnostics = await languageService.getDiagnostics(document)
 
-    // Filter for floor validation diagnostics and deduplicate
     const floorDiagnostics = Array.from(
       new Set(
         diagnostics
@@ -294,7 +180,6 @@ automation:
       console.log(`  - Line ${diagnostic.range.start.line + 1}: ${diagnostic.message}`)
     }
 
-    // Should only have 1 diagnostic for the unknown floor, not for templates or special values
     assert.strictEqual(
       floorDiagnostics.length,
       1,
@@ -333,7 +218,6 @@ automation:
 
     const diagnostics = await languageService.getDiagnostics(document)
 
-    // Filter for floor validation diagnostics
     const floorDiagnostics = diagnostics.filter(
       (d) => d.source === "home-assistant" && d.code === "unknown-floor"
     )
@@ -343,7 +227,6 @@ automation:
       console.log(`  - Line ${diagnostic.range.start.line + 1}: ${diagnostic.message}`)
     }
 
-    // Should have no diagnostics for commented floors
     assert.strictEqual(floorDiagnostics.length, 0, "Should not flag floors in commented lines")
   })
 })

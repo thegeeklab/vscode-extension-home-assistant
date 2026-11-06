@@ -35,7 +35,7 @@ suite("Symlink Protection Tests", () => {
     await cleanupTestDir()
   })
 
-  test("Prevents infinite loop with circular symlink to parent directory", async () => {
+  test("Prevents infinite loop with circular symlink to parent directory", async function () {
     await setupTestDir()
 
     // Create a directory structure: testDir/subdir
@@ -54,7 +54,7 @@ suite("Symlink Protection Tests", () => {
     } catch (error: any) {
       if (error.code === "EPERM") {
         console.log("Skipping symlink test - insufficient permissions on this platform")
-        return
+        this.skip()
       }
       throw error
     }
@@ -86,7 +86,7 @@ suite("Symlink Protection Tests", () => {
     console.log(`Found ${files.length} files in ${duration}ms`)
   })
 
-  test("Follows non-circular symlinks correctly", async () => {
+  test("Follows non-circular symlinks correctly", async function () {
     await setupTestDir()
 
     // Create two separate directories
@@ -106,7 +106,7 @@ suite("Symlink Protection Tests", () => {
     } catch (error: any) {
       if (error.code === "EPERM") {
         console.log("Skipping symlink test - insufficient permissions on this platform")
-        return
+        this.skip()
       }
       throw error
     }
@@ -123,7 +123,7 @@ suite("Symlink Protection Tests", () => {
     assert.strictEqual(yamlFiles.length, 1, "Should find config.yaml exactly once")
   })
 
-  test("Handles broken symlinks gracefully", async () => {
+  test("Handles broken symlinks gracefully", async function () {
     await setupTestDir()
 
     // Create a file
@@ -137,7 +137,7 @@ suite("Symlink Protection Tests", () => {
     } catch (error: any) {
       if (error.code === "EPERM") {
         console.log("Skipping symlink test - insufficient permissions on this platform")
-        return
+        this.skip()
       }
       throw error
     }

@@ -2,61 +2,8 @@ import * as assert from "assert"
 import * as vscode from "vscode"
 import * as path from "path"
 import { HomeAssistantYamlFile } from "../../src/language-service/src/haConfig/haYamlFile.js"
-import { FileAccessor } from "../../src/language-service/src/fileAccessor.js"
+import { TestFileAccessor } from "../helpers/mocks.js"
 import * as fs from "fs/promises"
-
-// Simple file accessor implementation for testing
-class TestFileAccessor implements FileAccessor {
-  async getFileContents(fileName: string): Promise<string> {
-    try {
-      return await fs.readFile(fileName, "utf8")
-    } catch (error) {
-      console.error(`Error reading file ${fileName}:`, error)
-      return ""
-    }
-  }
-
-  async getFilesInFolder(subFolder: string): Promise<string[]> {
-    try {
-      return (await fs.readdir(subFolder)).filter((f) => f.endsWith(".yaml") || f.endsWith(".yml"))
-    } catch {
-      return []
-    }
-  }
-
-  fromUriToLocalPath(uri: string): string {
-    return uri.replace("file://", "")
-  }
-
-  getRelativePath(from: string, to: string): string {
-    return path.resolve(path.dirname(from), to)
-  }
-
-  getRelativePathAsFileUri(relativeFrom: string, filename: string): string {
-    const fullPath = this.getRelativePath(relativeFrom, filename)
-    return `file://${fullPath}`
-  }
-
-  async getFilesInFolderRelativeFrom(folder: string, from: string): Promise<string[]> {
-    try {
-      const absoluteFolder = path.resolve(path.dirname(from), folder)
-      return (await fs.readdir(absoluteFolder)).filter(
-        (f) => f.endsWith(".yaml") || f.endsWith(".yml")
-      )
-    } catch {
-      return []
-    }
-  }
-
-  async getFilesInFolderRelativeFromAsFileUri(
-    subFolder: string,
-    relativeFrom: string
-  ): Promise<string[]> {
-    return (await this.getFilesInFolderRelativeFrom(subFolder, relativeFrom)).map(
-      (file) => `file://${path.resolve(path.dirname(relativeFrom), subFolder, file)}`
-    )
-  }
-}
 
 suite("YAML Position Tracking Tests", () => {
   let workspacePath: string

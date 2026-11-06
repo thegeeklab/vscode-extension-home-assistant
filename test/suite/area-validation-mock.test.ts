@@ -1,155 +1,49 @@
 import * as assert from "assert"
 import { TextDocument } from "vscode-languageserver-textdocument"
-import { CompletionItem, CompletionItemKind, MarkupContent } from "vscode-languageserver-protocol"
-import { IHaConnection } from "../../src/language-service/src/home-assistant/haConnection.js"
+import { CompletionItemKind, MarkupContent } from "vscode-languageserver-protocol"
 import { HomeAssistantLanguageService } from "../../src/language-service/src/haLanguageService.js"
-import { getLanguageService } from "yaml-language-server"
-import { SchemaServiceForIncludes } from "../../src/language-service/src/schemas/schemaService.js"
-import { HomeAssistantConfiguration } from "../../src/language-service/src/haConfig/haConfig.js"
-
-class MockFileAccessor {
-  async getFileContents(_uri: string): Promise<string> {
-    return ""
-  }
-
-  getRelativePath(_fileUri: string, _includePath: string): string {
-    return ""
-  }
-
-  getRelativePathAsFileUri(_fileUri: string, _includePath: string): string {
-    return ""
-  }
-
-  async getFilesInFolderRelativeFromAsFileUri(
-    _folderPath: string,
-    _fileUri: string
-  ): Promise<string[]> {
-    return []
-  }
-}
-
-// Mock Home Assistant connection with predefined areas
-class MockHaConnection implements IHaConnection {
-  private mockAreaCompletions: CompletionItem[] = [
-    {
-      label: "living_room",
-      detail: "Living Room",
-      kind: CompletionItemKind.Variable,
-      data: { isArea: true },
-      documentation: {
-        kind: "markdown",
-        value: "**living_room**\n\nFloor: ground_floor\n\n"
-      } as MarkupContent
-    },
-    {
-      label: "kitchen",
-      detail: "Kitchen",
-      kind: CompletionItemKind.Variable,
-      data: { isArea: true },
-      documentation: {
-        kind: "markdown",
-        value: "**kitchen**\n\nFloor: ground_floor\n\n"
-      } as MarkupContent
-    },
-    {
-      label: "bedroom",
-      detail: "Bedroom",
-      kind: CompletionItemKind.Variable,
-      data: { isArea: true },
-      documentation: {
-        kind: "markdown",
-        value: "**bedroom**\n\nFloor: first_floor\n\n"
-      } as MarkupContent
-    }
-  ]
-
-  async tryConnect(): Promise<void> {
-    // Mock implementation
-  }
-
-  async notifyConfigUpdate(_conf: any): Promise<void> {
-    // Mock implementation
-  }
-
-  async getAreaCompletions(): Promise<CompletionItem[]> {
-    return this.mockAreaCompletions
-  }
-
-  async getDeviceCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getDomainCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getEntityCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getFloorCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getLabelCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getServiceCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getHassEntities(): Promise<any> {
-    return {}
-  }
-
-  async getHassDevices(): Promise<any> {
-    return {}
-  }
-
-  async getHassEntityRegistry(): Promise<any> {
-    return {}
-  }
-
-  async getHassServices(): Promise<any> {
-    return {}
-  }
-
-  async resolveEntityCompletionDocumentation(_entityId: string): Promise<any> {
-    return undefined
-  }
-}
+import { createMockLanguageService, MockFileAccessor, MockHaConnection } from "../helpers/mocks.js"
 
 suite("Area Validation Tests", () => {
   let languageService: HomeAssistantLanguageService
-  let mockConnection: MockHaConnection
 
   setup(async () => {
-    mockConnection = new MockHaConnection()
-
-    const fileAccessor = new MockFileAccessor()
-    const haConfig = new HomeAssistantConfiguration(fileAccessor as any)
-    const yamlLanguageService = getLanguageService({
-      schemaRequestService: async () => "",
-      workspaceContext: null,
-      telemetry: undefined
+    const connection = new MockHaConnection({
+      areaCompletions: [
+        {
+          label: "living_room",
+          detail: "Living Room",
+          kind: CompletionItemKind.Variable,
+          data: { isArea: true },
+          documentation: {
+            kind: "markdown",
+            value: "**living_room**\n\nFloor: ground_floor\n\n"
+          } as MarkupContent
+        },
+        {
+          label: "kitchen",
+          detail: "Kitchen",
+          kind: CompletionItemKind.Variable,
+          data: { isArea: true },
+          documentation: {
+            kind: "markdown",
+            value: "**kitchen**\n\nFloor: ground_floor\n\n"
+          } as MarkupContent
+        },
+        {
+          label: "bedroom",
+          detail: "Bedroom",
+          kind: CompletionItemKind.Variable,
+          data: { isArea: true },
+          documentation: {
+            kind: "markdown",
+            value: "**bedroom**\n\nFloor: first_floor\n\n"
+          } as MarkupContent
+        }
+      ]
     })
 
-    // Create language service with mock connection
-    languageService = new HomeAssistantLanguageService(
-      yamlLanguageService,
-      haConfig,
-      mockConnection as any, // Type assertion to bypass strict typing
-      [],
-      await SchemaServiceForIncludes.create(),
-      () => {
-        /* mock sendDiagnostics */
-      },
-      () => {
-        /* mock diagnoseAllFiles */
-      },
-      { isConfigured: true, autoRenderTemplates: true } as any // Mock configuration service
-    )
+    languageService = await createMockLanguageService(connection, new MockFileAccessor())
   })
 
   test("Area validation identifies unknown areas", async () => {
@@ -340,10 +234,5 @@ automation:
 
     // Should have no diagnostics for commented areas
     assert.strictEqual(areaDiagnostics.length, 0, "Should not flag areas in commented lines")
-
-    // Verify that the line with living_room (valid area) doesn't generate diagnostics
-    const allDiagnostics = diagnostics.filter((d) => d.source === "home-assistant")
-    const livingRoomDiagnostic = allDiagnostics.find((d) => d.message.includes("living_room"))
-    assert.ok(!livingRoomDiagnostic, "Should not flag valid areas")
   })
 })

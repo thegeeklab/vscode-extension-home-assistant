@@ -1,158 +1,52 @@
 import * as assert from "assert"
 import { TextDocument } from "vscode-languageserver-textdocument"
-import { CompletionItem, CompletionItemKind, MarkupContent } from "vscode-languageserver-protocol"
-import { IHaConnection } from "../../src/language-service/src/home-assistant/haConnection.js"
+import { CompletionItemKind, MarkupContent } from "vscode-languageserver-protocol"
 import { HomeAssistantLanguageService } from "../../src/language-service/src/haLanguageService.js"
-import { getLanguageService } from "yaml-language-server"
-import { SchemaServiceForIncludes } from "../../src/language-service/src/schemas/schemaService.js"
-import { HomeAssistantConfiguration } from "../../src/language-service/src/haConfig/haConfig.js"
-
-class MockFileAccessor {
-  async getFileContents(_uri: string): Promise<string> {
-    return ""
-  }
-
-  getRelativePath(_fileUri: string, _includePath: string): string {
-    return ""
-  }
-
-  getRelativePathAsFileUri(_fileUri: string, _includePath: string): string {
-    return ""
-  }
-
-  async getFilesInFolderRelativeFromAsFileUri(
-    _folderPath: string,
-    _fileUri: string
-  ): Promise<string[]> {
-    return []
-  }
-}
-
-// Mock Home Assistant connection with predefined devices
-class MockHaConnection implements IHaConnection {
-  private mockDeviceCompletions: CompletionItem[] = [
-    {
-      label: "device_1234",
-      detail: "Smart Light Device",
-      kind: CompletionItemKind.Variable,
-      data: { isDevice: true },
-      documentation: {
-        kind: "markdown",
-        value:
-          "**device_1234**\n\nName: Smart Light Device\n\nManufacturer: Philips\n\nModel: Hue Bulb\n\nArea: living_room\n\n"
-      } as MarkupContent
-    },
-    {
-      label: "device_5678",
-      detail: "Motion Sensor",
-      kind: CompletionItemKind.Variable,
-      data: { isDevice: true },
-      documentation: {
-        kind: "markdown",
-        value:
-          "**device_5678**\n\nName: Motion Sensor\n\nManufacturer: Aqara\n\nModel: RTCGQ11LM\n\nArea: kitchen\n\n"
-      } as MarkupContent
-    },
-    {
-      label: "device_9999",
-      detail: "Smart Thermostat",
-      kind: CompletionItemKind.Variable,
-      data: { isDevice: true },
-      documentation: {
-        kind: "markdown",
-        value:
-          "**device_9999**\n\nName: Smart Thermostat\n\nManufacturer: Nest\n\nModel: Learning Thermostat\n\nArea: bedroom\n\n"
-      } as MarkupContent
-    }
-  ]
-
-  async tryConnect(): Promise<void> {
-    // Mock implementation
-  }
-
-  async notifyConfigUpdate(_conf: any): Promise<void> {
-    // Mock implementation
-  }
-
-  async getAreaCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getDeviceCompletions(): Promise<CompletionItem[]> {
-    return this.mockDeviceCompletions
-  }
-
-  async getDomainCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getEntityCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getFloorCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getLabelCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getServiceCompletions(): Promise<CompletionItem[]> {
-    return []
-  }
-
-  async getHassEntities(): Promise<any> {
-    return {}
-  }
-
-  async getHassDevices(): Promise<any> {
-    return {}
-  }
-
-  async getHassEntityRegistry(): Promise<any> {
-    return {}
-  }
-
-  async getHassServices(): Promise<any> {
-    return {}
-  }
-
-  async resolveEntityCompletionDocumentation(_entityId: string): Promise<any> {
-    return undefined
-  }
-}
+import { createMockLanguageService, MockFileAccessor, MockHaConnection } from "../helpers/mocks.js"
 
 suite("Device Validation Tests", () => {
   let languageService: HomeAssistantLanguageService
-  let mockConnection: MockHaConnection
 
   setup(async () => {
-    mockConnection = new MockHaConnection()
-
-    const fileAccessor = new MockFileAccessor()
-    const haConfig = new HomeAssistantConfiguration(fileAccessor as any)
-    const yamlLanguageService = getLanguageService({
-      schemaRequestService: async () => "",
-      workspaceContext: null,
-      telemetry: undefined
+    const connection = new MockHaConnection({
+      deviceCompletions: [
+        {
+          label: "device_1234",
+          detail: "Smart Light Device",
+          kind: CompletionItemKind.Variable,
+          data: { isDevice: true },
+          documentation: {
+            kind: "markdown",
+            value:
+              "**device_1234**\n\nName: Smart Light Device\n\nManufacturer: Philips\n\nModel: Hue Bulb\n\nArea: living_room\n\n"
+          } as MarkupContent
+        },
+        {
+          label: "device_5678",
+          detail: "Motion Sensor",
+          kind: CompletionItemKind.Variable,
+          data: { isDevice: true },
+          documentation: {
+            kind: "markdown",
+            value:
+              "**device_5678**\n\nName: Motion Sensor\n\nManufacturer: Aqara\n\nModel: RTCGQ11LM\n\nArea: kitchen\n\n"
+          } as MarkupContent
+        },
+        {
+          label: "device_9999",
+          detail: "Smart Thermostat",
+          kind: CompletionItemKind.Variable,
+          data: { isDevice: true },
+          documentation: {
+            kind: "markdown",
+            value:
+              "**device_9999**\n\nName: Smart Thermostat\n\nManufacturer: Nest\n\nModel: Learning Thermostat\n\nArea: bedroom\n\n"
+          } as MarkupContent
+        }
+      ]
     })
 
-    // Create language service with mock connection
-    languageService = new HomeAssistantLanguageService(
-      yamlLanguageService,
-      haConfig,
-      mockConnection as any, // Type assertion to bypass strict typing
-      [],
-      await SchemaServiceForIncludes.create(),
-      () => {
-        /* mock sendDiagnostics */
-      },
-      () => {
-        /* mock diagnoseAllFiles */
-      },
-      { isConfigured: true, autoRenderTemplates: true } as any // Mock configuration service
-    )
+    languageService = await createMockLanguageService(connection, new MockFileAccessor())
   })
 
   test("Should detect unknown device_id", async () => {

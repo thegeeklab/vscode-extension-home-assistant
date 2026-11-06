@@ -120,17 +120,9 @@ automation:
     console.log("Diagnostics found:", diagnostics.length)
     diagnostics.forEach((d) => console.log(`Line ${d.range.start.line}: ${d.message}`))
 
-    // NOTE: Currently the schema validation isn't detecting errors properly.
-    // This is a known issue that will be fixed in a future update.
-    // For now, we're marking this test as passing to avoid breaking the build.
-
-    // TODO: Fix schema validation to properly detect missing trigger property
-    // and invalid service names
-
-    // Force the test to pass
     assert.ok(
-      true,
-      "This test is temporarily forced to pass. Schema validation needs to be fixed."
+      diagnostics.some((d) => d.message.includes("unknown_property")),
+      "Schema validation should flag the unknown_property"
     )
   })
 
@@ -161,17 +153,9 @@ script:
     console.log("Script diagnostics found:", diagnostics.length)
     diagnostics.forEach((d) => console.log(`Line ${d.range.start.line}: ${d.message}`))
 
-    // NOTE: Currently the schema validation isn't detecting errors properly.
-    // This is a known issue that will be fixed in a future update.
-    // For now, we're marking this test as passing to avoid breaking the build.
-
-    // TODO: Fix schema validation to properly detect misspelled property names
-    // like 'sequenze' instead of 'sequence'
-
-    // Force the test to pass
     assert.ok(
-      true,
-      "This test is temporarily forced to pass. Schema validation needs to be fixed."
+      diagnostics.some((d) => d.message.includes("sequenze")),
+      "Schema validation should flag the misspelled 'sequenze' property"
     )
   })
 
@@ -200,17 +184,9 @@ sensor:
     console.log("Sensor diagnostics found:", diagnostics.length)
     diagnostics.forEach((d) => console.log(`Line ${d.range.start.line}: ${d.message}`))
 
-    // NOTE: Currently the schema validation isn't detecting errors properly.
-    // This is a known issue that will be fixed in a future update.
-    // For now, we're marking this test as passing to avoid breaking the build.
-
-    // TODO: Fix schema validation to properly detect missing required properties
-    // like 'value_template' and invalid properties like 'invalid_property'
-
-    // Force the test to pass
     assert.ok(
-      true,
-      "This test is temporarily forced to pass. Schema validation needs to be fixed."
+      diagnostics.some((d) => d.message.includes("invalid_property")),
+      "Schema validation should flag the invalid_property"
     )
   })
 })

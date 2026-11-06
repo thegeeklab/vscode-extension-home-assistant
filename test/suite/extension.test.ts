@@ -1,11 +1,12 @@
 import * as assert from "assert"
 import * as vscode from "vscode"
 import * as path from "path"
+import { EXTENSION_ID } from "../helpers/constants.js"
 
 suite("Extension Test Suite", () => {
   suiteSetup(async () => {
     // Activate the extension
-    await vscode.extensions.getExtension("thegeeklab.home-assistant")?.activate()
+    await vscode.extensions.getExtension(EXTENSION_ID)?.activate()
 
     // Show a message to indicate tests are starting
     vscode.window.showInformationMessage("Starting Home Assistant extension tests...")
@@ -16,7 +17,7 @@ suite("Extension Test Suite", () => {
   })
 
   test("Extension is activated", async () => {
-    const extension = vscode.extensions.getExtension("thegeeklab.home-assistant")
+    const extension = vscode.extensions.getExtension(EXTENSION_ID)
     assert.ok(extension, "Extension is installed")
     assert.strictEqual(extension?.isActive, true, "Extension is active")
   })
