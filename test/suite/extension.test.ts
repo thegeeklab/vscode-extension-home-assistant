@@ -65,9 +65,6 @@ suite("Extension Test Suite", () => {
     const document = await vscode.workspace.openTextDocument(yamlFilePath)
     await vscode.window.showTextDocument(document)
 
-    // Wait for language server to initialize
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
     // Basic test to verify document opened successfully
     assert.ok(
       document.languageId === "yaml" || document.languageId === "home-assistant",

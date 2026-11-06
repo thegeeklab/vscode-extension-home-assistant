@@ -4,7 +4,7 @@ import type { HassDevices } from "./haConnection.js"
 
 /**
  * Static registry data for Extension Development Host testing without a live
- * Home Assistant instance. IDs align with test-workspace validation fixtures
+ * Home Assistant instance. IDs align with test/fixtures/workspace validation fixtures
  * and the *-validation-mock.test.ts suites.
  */
 

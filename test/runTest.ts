@@ -1,24 +1,34 @@
-import * as path from "path"
+import { rmSync } from "node:fs"
+import { tmpdir } from "node:os"
+import { join, resolve } from "node:path"
 import { runTests } from "@vscode/test-electron"
 
 async function main() {
   try {
-    // The folder containing the Extension Manifest package.json
-    const extensionDevelopmentPath = path.resolve(import.meta.dirname, "../../")
+    const extensionDevelopmentPath = resolve(import.meta.dirname, "../../")
+    const extensionTestsPath = resolve(import.meta.dirname, "./suite/index.js")
+    const testWorkspace = resolve(extensionDevelopmentPath, "test/fixtures/workspace")
+    const userDataDir = join(tmpdir(), "home-assistant-test")
 
-    // The path to the extension test runner script
-    const extensionTestsPath = path.resolve(import.meta.dirname, "./suite/index.js")
+    // Clean up stale user data from previous test runs
+    rmSync(userDataDir, { recursive: true, force: true })
 
-    // The path to the workspace to use for testing
-    const testWorkspace = path.resolve(extensionDevelopmentPath, "test-workspace")
+    const version = process.env.VSCODE_TEST_VERSION ?? "stable"
 
-    // Download VS Code, unzip it and run the integration test
     await runTests({
+      version,
       extensionDevelopmentPath,
       extensionTestsPath,
       launchArgs: [
         testWorkspace,
-        "--disable-extensions" // Disable other extensions to avoid conflicts
+        "--new-window",
+        "--disable-extensions",
+        "--disable-gpu",
+        "--no-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-crash-reporter",
+        "--user-data-dir",
+        userDataDir
       ]
     })
   } catch (err) {

@@ -17,9 +17,6 @@ suite("Home Assistant Language Features", () => {
     const document = await vscode.workspace.openTextDocument(configPath)
     await vscode.window.showTextDocument(document)
 
-    // Wait for language server to initialize
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
     // Verify the language ID is correctly set
     assert.ok(
       document.languageId === "yaml" || document.languageId === "home-assistant",

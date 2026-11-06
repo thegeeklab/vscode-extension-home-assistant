@@ -2,6 +2,7 @@ import * as assert from "assert"
 import * as vscode from "vscode"
 import * as path from "path"
 import * as fs from "fs/promises"
+import { delay, waitForDiagnostics } from "../helpers/waitFor.js"
 
 suite("Schema Validation Tests", () => {
   let workspacePath: string
@@ -24,13 +25,12 @@ suite("Schema Validation Tests", () => {
   // Helper function for more flexible schema validation testing
   async function testSchemaValidation(
     content: string,
-    fileName = "test-schema-validation.yaml",
-    timeoutMs = 5000 // Increase default timeout to 5 seconds
+    fileName = "test-schema-validation.yaml"
   ): Promise<{ document: vscode.TextDocument; diagnostics: vscode.Diagnostic[] }> {
     const document = await createTestFile(content, fileName)
 
     // Open the document and force a re-validation
-    const editor = await vscode.window.showTextDocument(document)
+    const editor = await vscode.window.showTextDocument(document, { preview: false })
 
     // Force multiple edits to trigger validation
     for (let i = 0; i < 2; i++) {
@@ -41,7 +41,7 @@ suite("Schema Validation Tests", () => {
       })
 
       // Small delay between edits
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      await delay(200)
     }
 
     // Try to trigger validation explicitly if available
@@ -52,16 +52,14 @@ suite("Schema Validation Tests", () => {
       console.log("Info: Could not explicitly trigger validation")
     }
 
-    // Wait for diagnostics with custom timeout
-    return new Promise<{ document: vscode.TextDocument; diagnostics: vscode.Diagnostic[] }>(
-      (resolve) => {
-        setTimeout(() => {
-          const diagnostics = vscode.languages.getDiagnostics(document.uri)
-          console.log(`Got ${diagnostics.length} diagnostics for ${fileName} after ${timeoutMs}ms`)
-          resolve({ document, diagnostics })
-        }, timeoutMs)
-      }
-    )
+    // Wait for diagnostics to settle
+    const diagnostics = await waitForDiagnostics(document, () => true, {
+      timeoutMs: 8000,
+      settleMs: 1000,
+      message: `diagnostics for ${fileName}`
+    })
+    console.log(`Got ${diagnostics.length} diagnostics for ${fileName}`)
+    return { document, diagnostics }
   }
 
   test("Valid automation schema passes validation", async () => {
@@ -116,9 +114,8 @@ automation:
         # Unknown property
         unknown_property: something
 `,
-      "test-invalid-automation.yaml",
-      8000
-    ) // Longer timeout
+      "test-invalid-automation.yaml"
+    )
 
     console.log("Diagnostics found:", diagnostics.length)
     diagnostics.forEach((d) => console.log(`Line ${d.range.start.line}: ${d.message}`))
@@ -158,9 +155,8 @@ script:
         target:
           entity_id: light.kitchen
 `,
-      "test-script-validation.yaml",
-      8000
-    ) // Longer timeout
+      "test-script-validation.yaml"
+    )
 
     console.log("Script diagnostics found:", diagnostics.length)
     diagnostics.forEach((d) => console.log(`Line ${d.range.start.line}: ${d.message}`))
@@ -198,9 +194,8 @@ sensor:
         # Invalid property
         invalid_property: something
 `,
-      "test-sensor-validation.yaml",
-      8000
-    ) // Longer timeout
+      "test-sensor-validation.yaml"
+    )
 
     console.log("Sensor diagnostics found:", diagnostics.length)
     diagnostics.forEach((d) => console.log(`Line ${d.range.start.line}: ${d.message}`))

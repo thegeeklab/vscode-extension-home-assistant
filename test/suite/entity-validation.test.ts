@@ -21,9 +21,6 @@ suite("Entity Validation", () => {
     const document = await vscode.workspace.openTextDocument(testPath)
     await vscode.window.showTextDocument(document)
 
-    // Wait for language server to initialize and process diagnostics
-    await new Promise((resolve) => setTimeout(resolve, 3000))
-
     // Verify the document is opened
     assert.ok(document, "Entity validation test document is opened")
     assert.ok(
@@ -83,9 +80,6 @@ automation:
 
     await vscode.window.showTextDocument(document)
 
-    // Wait for language server processing
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
     // Verify the document has the expected content
     assert.ok(document.getText().includes("sensor.test_sensor"), "Document contains test entity")
     assert.ok(document.getText().includes("entity_id:"), "Document contains entity_id properties")
@@ -118,9 +112,6 @@ automation:
     })
 
     await vscode.window.showTextDocument(document)
-
-    // Wait for language server processing
-    await new Promise((resolve) => setTimeout(resolve, 2000))
 
     // Get diagnostics for the document
     const diagnostics = vscode.languages.getDiagnostics(document.uri)

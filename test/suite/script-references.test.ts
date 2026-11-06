@@ -39,9 +39,6 @@ suite("Script Reference Tests", () => {
     const document = await vscode.workspace.openTextDocument(gotoDefinitionPath)
     await vscode.window.showTextDocument(document)
 
-    // Wait for language server to initialize
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
     // Verify the file content contains script references
     const content = document.getText()
     assert.ok(content.includes("script.test_script_1"), "Contains reference to test_script_1")

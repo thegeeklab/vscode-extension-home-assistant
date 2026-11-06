@@ -5,7 +5,7 @@ import {
   ServerCapabilities,
   TextDocumentSyncKind,
   Diagnostic
-} from "vscode-languageserver/node"
+} from "vscode-languageserver/node.js"
 import { TextDocument } from "vscode-languageserver-textdocument"
 import { getLanguageService } from "yaml-language-server"
 import { HaConnection } from "../language-service/src/home-assistant/haConnection.js"

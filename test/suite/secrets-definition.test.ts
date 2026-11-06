@@ -2,6 +2,7 @@ import * as assert from "assert"
 import * as vscode from "vscode"
 import * as path from "path"
 import * as fs from "fs/promises"
+import { delay, waitForValue } from "../helpers/waitFor.js"
 
 // Tests for goto definition functionality with secrets
 suite("Secrets Definition Tests", () => {
@@ -121,12 +122,13 @@ automation:
 
     const document = await createTestFile(testContent, "test-secrets-goto.yaml")
 
-    // Wait for language server to initialize
-    await new Promise((resolve) => setTimeout(resolve, 3000))
-
     // Test goto definition for "!secret database_password" on line 3
     const databasePasswordPosition = new vscode.Position(2, 23) // Position of "database_password" in "!secret database_password"
-    const databasePasswordDefinitions = await getDefinitionsAt(document, databasePasswordPosition)
+    const databasePasswordDefinitions = await waitForValue(
+      () => getDefinitionsAt(document, databasePasswordPosition),
+      (definitions) => !!definitions && definitions.length > 0,
+      { message: "definitions for '!secret database_password'" }
+    )
 
     assert.ok(
       databasePasswordDefinitions,
@@ -251,8 +253,8 @@ rest_command:
 
     const document = await createTestFile(testContent, "test-secrets-nested.yaml")
 
-    // Wait for language server to initialize
-    await new Promise((resolve) => setTimeout(resolve, 3000))
+    // Give the language server a moment to process the opened document
+    await delay(500)
 
     // Test goto definition for secrets in various contexts
     const positions = [
@@ -309,8 +311,8 @@ homeassistant:
 
     const document = await createTestFile(testContent, "test-secrets-invalid.yaml")
 
-    // Wait for language server to initialize
-    await new Promise((resolve) => setTimeout(resolve, 3000))
+    // Give the language server a moment to process the opened document
+    await delay(500)
 
     // Test positions that should not trigger goto definition
     const invalidPositions = [
@@ -352,8 +354,8 @@ homeassistant:
 
       const document = await createTestFile(testContent, "test-missing-secrets.yaml")
 
-      // Wait for language server to initialize
-      await new Promise((resolve) => setTimeout(resolve, 3000))
+      // Give the language server a moment to process the opened document
+      await delay(500)
 
       // Test goto definition when secrets.yaml doesn't exist
       const position = new vscode.Position(2, 15) // Position of "welcome" in "!secret welcome"
