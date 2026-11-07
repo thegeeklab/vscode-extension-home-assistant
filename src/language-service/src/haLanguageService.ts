@@ -267,7 +267,13 @@ export class HomeAssistantLanguageService {
       }
 
       diagnosticItem.severity = 1 // Convert all warnings to errors
-      diagnostics.push(diagnosticItem)
+      diagnostics.push({
+        ...diagnosticItem,
+        message:
+          typeof diagnosticItem.message === "string"
+            ? diagnosticItem.message
+            : diagnosticItem.message.value
+      })
     }
 
     // Add entity validation diagnostics
