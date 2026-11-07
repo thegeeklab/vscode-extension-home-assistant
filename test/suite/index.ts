@@ -7,38 +7,27 @@ import { glob } from "glob"
 process.on("SIGPIPE", () => {})
 
 // Custom reporter that logs each suite/test as it starts (CI-friendly)
-class DebugReporter extends Mocha.reporters.Spec {
+class DebugReporter {
   private startTime: number
 
-  constructor(runner: Mocha.Runner, options?: Mocha.MochaOptions) {
-    super(runner, options)
+  constructor(runner: Mocha.Runner) {
     this.startTime = Date.now()
-  }
+    const log = (msg: string) => console.log(`[${Date.now() - this.startTime}ms] ${msg}`)
 
-  private log(msg: string) {
-    console.log(`[${Date.now() - this.startTime}ms] ${msg}`)
-  }
-
-  override onSuiteStart(suite: Mocha.Suite) {
-    if (suite.title) {
-      this.log(`SUITE START: ${suite.title}`)
-    }
-    super.onSuiteStart?.(suite)
-  }
-
-  override onTestStart(test: Mocha.Test) {
-    this.log(`TEST START: ${test.fullTitle()}`)
-    super.onTestStart?.(test)
-  }
-
-  override onPass(test: Mocha.Test) {
-    this.log(`TEST PASS: ${test.fullTitle()} (${test.duration}ms)`)
-    super.onPass?.(test)
-  }
-
-  override onFail(test: Mocha.Test, err: Error) {
-    this.log(`TEST FAIL: ${test.fullTitle()} - ${err.message}`)
-    super.onFail?.(test, err)
+    runner.on("suite", (suite: Mocha.Suite) => {
+      if (suite.title) {
+        log(`SUITE START: ${suite.title}`)
+      }
+    })
+    runner.on("test", (test: Mocha.Test) => {
+      log(`TEST START: ${test.fullTitle()}`)
+    })
+    runner.on("pass", (test: Mocha.Test) => {
+      log(`TEST PASS: ${test.fullTitle()} (${test.duration}ms)`)
+    })
+    runner.on("fail", (test: Mocha.Test, err: Error) => {
+      log(`TEST FAIL: ${test.fullTitle()} - ${err.message}`)
+    })
   }
 }
 
