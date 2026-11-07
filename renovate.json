@@ -16,9 +16,22 @@
   ],
   "packageRules": [
     {
-      "description": "Group @types/vscode and engines.vscode updates into one PR",
+      "description": "Group @types/vscode and engines.vscode updates",
       "matchPackageNames": ["@types/vscode"],
       "groupName": "vscode engine and types"
+    },
+    {
+      "description": "Group vscode-languageserver-node monorepo packages into one",
+      "matchPackageNames": [
+        "vscode-jsonrpc",
+        "vscode-languageclient",
+        "vscode-languageserver",
+        "vscode-languageserver-protocol",
+        "vscode-languageserver-textdocument",
+        "vscode-languageserver-types",
+        "vscode-json-languageservice"
+      ],
+      "groupName": "vscode-languageserver-node monorepo"
     }
   ]
 }
