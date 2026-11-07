@@ -20,11 +20,11 @@ steps:
       - npm ci
       - npm run build:all
 
-  - name: vscode-1.106.0
+  - name: vscode-1.119.0
     image: docker.io/library/node:26
     depends_on: ["deps"]
     environment:
-      VSCODE_TEST_VERSION: "1.106.0"
+      VSCODE_TEST_VERSION: "1.119.0"
     !!merge <<: *test_base
 
   - name: vscode-stable
