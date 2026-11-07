@@ -7,27 +7,36 @@ when:
 
 variables:
   - &test_base
-    image: docker.io/library/node:26
-    depends_on: []
     commands:
       - apt-get update > /dev/null 2>&1 && apt-get install -yq dbus dbus-x11 libasound2 libgbm1 libgtk-3-0 libnss3 xvfb wget jq > /dev/null 2>&1
       - eval $$(dbus-launch --sh-syntax)
       - export DBUS_SYSTEM_BUS_ADDRESS=$$DBUS_SESSION_BUS_ADDRESS
-      - npm ci
-      - xvfb-run -a npm run test
+      - xvfb-run -a npm run test:run
 
 steps:
+  - name: deps
+    image: docker.io/library/node:26
+    commands:
+      - npm ci
+      - npm run build:all
+
   - name: vscode-1.106.0
+    image: docker.io/library/node:26
+    depends_on: ["deps"]
     environment:
       VSCODE_TEST_VERSION: "1.106.0"
     !!merge <<: *test_base
 
   - name: vscode-stable
+    image: docker.io/library/node:26
+    depends_on: ["deps"]
     environment:
       VSCODE_TEST_VERSION: "stable"
     !!merge <<: *test_base
 
   - name: vscode-insiders
+    image: docker.io/library/node:26
+    depends_on: ["deps"]
     environment:
       VSCODE_TEST_VERSION: "insiders"
     !!merge <<: *test_base
