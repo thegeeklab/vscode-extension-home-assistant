@@ -6,43 +6,25 @@ import { glob } from "glob"
 // This happens when spawning processes that fail immediately.
 process.on("SIGPIPE", () => {})
 
-// Custom reporter that logs each suite/test as it starts (CI-friendly)
-class DebugReporter {
-  private startTime: number
-
-  constructor(runner: Mocha.Runner) {
-    this.startTime = Date.now()
-    const log = (msg: string) => console.log(`[${Date.now() - this.startTime}ms] ${msg}`)
-
-    runner.on("suite", (suite: Mocha.Suite) => {
-      if (suite.title) {
-        log(`SUITE START: ${suite.title}`)
-      }
-    })
-    runner.on("test", (test: Mocha.Test) => {
-      log(`TEST START: ${test.fullTitle()}`)
-    })
-    runner.on("pass", (test: Mocha.Test) => {
-      log(`TEST PASS: ${test.fullTitle()} (${test.duration}ms)`)
-    })
-    runner.on("fail", (test: Mocha.Test, err: Error) => {
-      log(`TEST FAIL: ${test.fullTitle()} - ${err.message}`)
-    })
-  }
-}
-
 export async function run(): Promise<void> {
   const startTime = Date.now()
   const log = (msg: string) => console.log(`[test-suite ${Date.now() - startTime}ms] ${msg}`)
 
   log("Initializing Mocha test suite")
 
+  // Surface silent async failures so they don't hang the run invisibly.
+  process.on("uncaughtException", (err) => {
+    console.error("[test-suite] uncaughtException:", err)
+  })
+  process.on("unhandledRejection", (reason) => {
+    console.error("[test-suite] unhandledRejection:", reason)
+  })
+
   // Create the Mocha test
   const mocha = new Mocha({
     ui: "tdd",
     color: true,
-    timeout: 30000,
-    reporter: DebugReporter as any
+    timeout: 30000
   })
 
   const testsRoot = path.resolve(import.meta.dirname, "..")
@@ -58,8 +40,10 @@ export async function run(): Promise<void> {
   try {
     // Run the tests
     log("Starting test execution")
+
     return new Promise<void>((resolve, reject) => {
-      mocha.run((failures: number) => {
+      const runner = mocha.run((failures: number) => {
+        clearInterval(heartbeat)
         log(`Test execution completed with ${failures} failures`)
         if (failures > 0) {
           reject(new Error(`${failures} tests failed.`))
@@ -67,6 +51,25 @@ export async function run(): Promise<void> {
           resolve()
         }
       })
+
+      // Watchdog: if this heartbeat stops, the extension host event loop is
+      // blocked synchronously. If it keeps ticking, the hang is async (deadlock).
+      const heartbeat = setInterval(() => {
+        log(`heartbeat (total: ${runner.total})`)
+      }, 2000)
+
+      runner.on("start", () => log("RUNNER start"))
+      runner.on("suite", (suite: Mocha.Suite) => {
+        if (suite.title) log(`SUITE START: ${suite.title}`)
+      })
+      runner.on("test", (test: Mocha.Test) => log(`TEST START: ${test.fullTitle()}`))
+      runner.on("pass", (test: Mocha.Test) => {
+        log(`TEST PASS: ${test.fullTitle()} (${test.duration}ms)`)
+      })
+      runner.on("fail", (test: Mocha.Test, err: Error) => {
+        log(`TEST FAIL: ${test.fullTitle()} - ${err.message}`)
+      })
+      runner.on("end", () => log("RUNNER end"))
     })
   } catch (err) {
     console.error("Failed to run tests:", err)
