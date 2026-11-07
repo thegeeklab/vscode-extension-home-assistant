@@ -126,7 +126,7 @@ group:
 
     const foundUnknownEntities = entityDiagnostics
       .map((d) => {
-        const match = d.message.match(/Entity '([^']+)'/)
+        const match = (d.message as string).match(/Entity '([^']+)'/)
         return match ? match[1] : null
       })
       .filter((e) => e !== null)
@@ -189,7 +189,7 @@ automation:
       "Should only flag unknown entities, not templates or secrets"
     )
 
-    const foundEntity = entityDiagnostics[0].message.match(/Entity '([^']+)'/)?.[1]
+    const foundEntity = (entityDiagnostics[0].message as string).match(/Entity '([^']+)'/)?.[1]
     assert.strictEqual(foundEntity, "light.unknown_entity", "Should flag the unknown entity")
   })
 
@@ -228,7 +228,7 @@ automation:
       "Should only flag valid format unknown entities"
     )
 
-    const foundEntity = entityDiagnostics[0].message.match(/Entity '([^']+)'/)?.[1]
+    const foundEntity = (entityDiagnostics[0].message as string).match(/Entity '([^']+)'/)?.[1]
     assert.strictEqual(
       foundEntity,
       "light.valid_but_unknown",

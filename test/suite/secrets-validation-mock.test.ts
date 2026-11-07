@@ -81,7 +81,7 @@ script:
 
     const foundUnknownSecrets = secretsDiagnostics
       .map((d) => {
-        const match = d.message.match(/Secret '([^']+)'/)
+        const match = (d.message as string).match(/Secret '([^']+)'/)
         return match ? match[1] : null
       })
       .filter((s) => s !== null)
@@ -142,7 +142,7 @@ automation:
       "Should only flag unknown secrets, not templates"
     )
 
-    const foundSecret = secretsDiagnostics[0].message.match(/Secret '([^']+)'/)?.[1]
+    const foundSecret = (secretsDiagnostics[0].message as string).match(/Secret '([^']+)'/)?.[1]
     assert.strictEqual(foundSecret, "nonexistent_secret", "Should flag the unknown secret")
   })
 
@@ -184,7 +184,7 @@ automation:
       "Should only flag valid format unknown secrets"
     )
 
-    const foundSecret = secretsDiagnostics[0].message.match(/Secret '([^']+)'/)?.[1]
+    const foundSecret = (secretsDiagnostics[0].message as string).match(/Secret '([^']+)'/)?.[1]
     assert.strictEqual(
       foundSecret,
       "valid_but_unknown",
