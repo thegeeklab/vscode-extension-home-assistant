@@ -6,6 +6,42 @@ import { glob } from "glob"
 // This happens when spawning processes that fail immediately.
 process.on("SIGPIPE", () => {})
 
+// Custom reporter that logs each suite/test as it starts (CI-friendly)
+class DebugReporter extends Mocha.reporters.Spec {
+  private startTime: number
+
+  constructor(runner: Mocha.Runner, options?: Mocha.MochaOptions) {
+    super(runner, options)
+    this.startTime = Date.now()
+  }
+
+  private log(msg: string) {
+    console.log(`[${Date.now() - this.startTime}ms] ${msg}`)
+  }
+
+  override onSuiteStart(suite: Mocha.Suite) {
+    if (suite.title) {
+      this.log(`SUITE START: ${suite.title}`)
+    }
+    super.onSuiteStart?.(suite)
+  }
+
+  override onTestStart(test: Mocha.Test) {
+    this.log(`TEST START: ${test.fullTitle()}`)
+    super.onTestStart?.(test)
+  }
+
+  override onPass(test: Mocha.Test) {
+    this.log(`TEST PASS: ${test.fullTitle()} (${test.duration}ms)`)
+    super.onPass?.(test)
+  }
+
+  override onFail(test: Mocha.Test, err: Error) {
+    this.log(`TEST FAIL: ${test.fullTitle()} - ${err.message}`)
+    super.onFail?.(test, err)
+  }
+}
+
 export async function run(): Promise<void> {
   const startTime = Date.now()
   const log = (msg: string) => console.log(`[test-suite ${Date.now() - startTime}ms] ${msg}`)
@@ -16,7 +52,8 @@ export async function run(): Promise<void> {
   const mocha = new Mocha({
     ui: "tdd",
     color: true,
-    timeout: 30000
+    timeout: 30000,
+    reporter: DebugReporter as any
   })
 
   const testsRoot = path.resolve(import.meta.dirname, "..")
