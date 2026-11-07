@@ -31,7 +31,8 @@
         "vscode-languageserver-types",
         "vscode-json-languageservice"
       ],
-      "groupName": "vscode-languageserver-node monorepo"
+      "groupName": "vscode-languageserver-node monorepo",
+      "separateMajorMinor": false
     }
   ]
 }
