@@ -199,7 +199,7 @@ group:
 
     const foundUnknownActions = actionDiagnostics
       .map((d) => {
-        const match = d.message.match(/Action '([^']+)'/)
+        const match = (d.message as string).match(/Action '([^']+)'/)
         return match ? match[1] : null
       })
       .filter((s) => s !== null)
@@ -261,7 +261,7 @@ automation:
       "Should only flag unknown actions, not templates or secrets"
     )
 
-    const foundAction = actionDiagnostics[0].message.match(/Action '([^']+)'/)?.[1]
+    const foundAction = (actionDiagnostics[0].message as string).match(/Action '([^']+)'/)?.[1]
     assert.strictEqual(foundAction, "light.unknown_service", "Should flag the unknown action")
   })
 
@@ -301,7 +301,7 @@ automation:
       "Should only flag valid format unknown actions"
     )
 
-    const foundAction = actionDiagnostics[0].message.match(/Action '([^']+)'/)?.[1]
+    const foundAction = (actionDiagnostics[0].message as string).match(/Action '([^']+)'/)?.[1]
     assert.strictEqual(
       foundAction,
       "light.valid_but_unknown",

@@ -1,7 +1,7 @@
 import * as path from "path"
 import * as vscode from "vscode"
 import { LanguageClientOptions } from "vscode-languageclient"
-import { LanguageClient, ServerOptions, TransportKind } from "vscode-languageclient/node.js"
+import { LanguageClient, ServerOptions, TransportKind } from "vscode-languageclient/node"
 import { AuthManager } from "./auth/manager.js"
 import { AuthMiddleware } from "./auth/middleware.js"
 import { manageAuth, testConnection } from "./auth/commands.js"
