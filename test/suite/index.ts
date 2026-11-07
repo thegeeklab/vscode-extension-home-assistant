@@ -7,6 +7,11 @@ import { glob } from "glob"
 process.on("SIGPIPE", () => {})
 
 export async function run(): Promise<void> {
+  const startTime = Date.now()
+  const log = (msg: string) => console.log(`[test-suite ${Date.now() - startTime}ms] ${msg}`)
+
+  log("Initializing Mocha test suite")
+
   // Create the Mocha test
   const mocha = new Mocha({
     ui: "tdd",
@@ -15,17 +20,21 @@ export async function run(): Promise<void> {
   })
 
   const testsRoot = path.resolve(import.meta.dirname, "..")
+  log(`Tests root: ${testsRoot}`)
 
   // Find all test files
   const files = await glob("**/**.test.js", { cwd: testsRoot })
+  log(`Found ${files.length} test files: ${files.join(", ")}`)
 
   // Add files to the test suite
   files.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)))
 
   try {
     // Run the tests
+    log("Starting test execution")
     return new Promise<void>((resolve, reject) => {
       mocha.run((failures: number) => {
+        log(`Test execution completed with ${failures} failures`)
         if (failures > 0) {
           reject(new Error(`${failures} tests failed.`))
         } else {
