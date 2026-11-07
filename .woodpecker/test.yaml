@@ -5,12 +5,29 @@ when:
     branch:
       - ${CI_REPO_DEFAULT_BRANCH}
 
-steps:
-  - name: test
+variables:
+  - &test_base
     image: docker.io/library/node:26
+    depends_on: []
     commands:
       - apt-get update > /dev/null 2>&1 && apt-get install -yq dbus dbus-x11 libasound2 libgbm1 libgtk-3-0 libnss3 xvfb wget jq > /dev/null 2>&1
       - eval $$(dbus-launch --sh-syntax)
       - export DBUS_SYSTEM_BUS_ADDRESS=$$DBUS_SESSION_BUS_ADDRESS
       - npm ci
       - xvfb-run -a npm run test
+
+steps:
+  - name: vscode-1.106.0
+    environment:
+      VSCODE_TEST_VERSION: "1.106.0"
+    !!merge <<: *test_base
+
+  - name: vscode-stable
+    environment:
+      VSCODE_TEST_VERSION: "stable"
+    !!merge <<: *test_base
+
+  - name: vscode-insiders
+    environment:
+      VSCODE_TEST_VERSION: "insiders"
+    !!merge <<: *test_base
