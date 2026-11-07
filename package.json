@@ -1,7 +1,7 @@
 {
   "name": "home-assistant",
-  "displayName": "home-assistant",
-  "description": "Completion for entity-id's in Home Assistant Configurations",
+  "displayName": "Home Assistant Dev Toolkit",
+  "description": "Smart autocomplete, schema validation and Jinja support for Home Assistant configurations",
   "version": "0.0.0-dev",
   "preview": false,
   "private": true,
@@ -45,7 +45,7 @@
   "contributes": {
     "configuration": [
       {
-        "title": "Home Assistant Config Helper",
+        "title": "Home Assistant Dev Toolkit",
         "properties": {
           "home-assistant.ignoreCertificates": {
             "type": "boolean",

@@ -1,10 +1,10 @@
 # vscode-extension-home-assistant
 
-Home Assistant Config Helper for Visual Studio Code.
+Home Assistant Dev Toolkit for Visual Studio Code.
 
 [![License: MIT](https://img.shields.io/github/license/thegeeklab/vscode-extension-home-assistant?logo=github&logoColor=white)](https://github.com/thegeeklab/vscode-extension-home-assistant/blob/main/LICENSE)
 
-A VS Code extension that provides completion, validation and schema support for [Home Assistant](https://www.home-assistant.io/) configurations.
+Smart autocomplete, schema validation and Jinja support for [Home Assistant](https://www.home-assistant.io/) configurations.
 
 ## Features
 
