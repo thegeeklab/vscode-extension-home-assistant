@@ -16,6 +16,10 @@
       ],
       "groupName": "vscode-languageserver-node monorepo",
       "separateMajorMinor": false
+    },
+    {
+      "matchPackageNames": ["@types/vscode"],
+      "enabled": false
     }
   ]
 }
