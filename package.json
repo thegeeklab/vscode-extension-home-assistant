@@ -1,14 +1,14 @@
 {
   "name": "home-assistant",
-  "displayName": "home-assistant",
-  "description": "Completion for entity-id's in Home Assistant Configurations",
+  "displayName": "Home Assistant Dev Toolkit",
+  "description": "Smart autocomplete, schema validation and Jinja support for Home Assistant configurations",
   "version": "0.0.0-dev",
   "preview": false,
   "private": true,
   "pricing": "Free",
   "type": "module",
   "engines": {
-    "vscode": "^1.145.0",
+    "vscode": "^1.119.0",
     "node": ">=26"
   },
   "categories": [
@@ -45,7 +45,7 @@
   "contributes": {
     "configuration": [
       {
-        "title": "Home Assistant Config Helper",
+        "title": "Home Assistant Dev Toolkit",
         "properties": {
           "home-assistant.ignoreCertificates": {
             "type": "boolean",
@@ -729,13 +729,14 @@
     "format:check": "prettier --check .",
     "spell": "cspell \"**\"",
     "pretest": "npm run build:all",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/test/runTest.js",
+    "test:run": "node ./out/test/runTest.js"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@types/mocha": "10.0.10",
     "@types/node": "26.x",
-    "@types/vscode": "1.145.0",
+    "@types/vscode": "^1.118.0",
     "@types/ws": "8.18.2",
     "@typescript-eslint/eslint-plugin": "8.72.1",
     "@typescript-eslint/parser": "8.72.1",
