@@ -62,6 +62,151 @@ suite("Schema Validation Tests", () => {
     return { document, diagnostics }
   }
 
+  test("Automation schema accepts notes, weekday and selector triggers", async () => {
+    const { diagnostics } = await testSchemaValidation(
+      `
+automation:
+  - id: selector_trigger_test
+    alias: Selector Trigger Test
+    trigger:
+      - trigger: time
+        at: "08:00:00"
+        weekday:
+          - mon
+          - wed
+          - fri
+        note: "Only on weekdays"
+      - trigger: calendar.event_started
+        target:
+          entity_id: calendar.work
+        options:
+          offset: "-00:15:00"
+          offset_type: before
+        note: "Starts soon"
+      - trigger: calendar.event_ended
+        target:
+          entity_id: calendar.work
+      - trigger: climate.hvac_mode_changed
+        target:
+          entity_id: climate.living_room
+        options:
+          behavior: any
+          for: "00:10:00"
+          hvac_mode:
+            - heat
+            - cool
+      - trigger: event.received
+        target:
+          entity_id: sensor.some_sensor
+        options:
+          event_type: custom_event
+        note: "Custom event"
+    condition:
+      - condition: temperature.is_value
+        target:
+          entity_id: sensor.outside_temperature
+        options:
+          behavior: all
+          for: "00:05:00"
+          threshold:
+            type: above
+            value: 20
+        note: "Above 20 degrees"
+    action:
+      - action: light.turn_on
+        note: "Turn on the light"
+        target:
+          entity_id: light.living_room
+`
+    )
+
+    const schemaErrors = diagnostics.filter(
+      (d) => d.source === "yaml-schema" || d.message.includes("schema")
+    )
+
+    assert.strictEqual(
+      schemaErrors.length,
+      0,
+      `Notes, weekday and selector triggers should not produce schema errors: ${schemaErrors
+        .map((d) => d.message)
+        .join("; ")}`
+    )
+  })
+
+  test("Temperature condition accepts between and outside thresholds", async () => {
+    const { diagnostics } = await testSchemaValidation(
+      `
+automation:
+  - id: temperature_threshold_test
+    alias: Temperature Threshold Test
+    trigger:
+      - trigger: state
+        entity_id: sensor.outside_temperature
+    condition:
+      - condition: temperature.is_value
+        target:
+          entity_id: sensor.outside_temperature
+        options:
+          behavior: all
+          for: "00:05:00"
+          threshold:
+            type: between
+            value_min: 18
+            value_max: 24
+      - condition: temperature.is_value
+        target:
+          entity_id: sensor.outside_temperature
+        options:
+          threshold:
+            type: outside
+            value_min: 18
+            value_max: 24
+`,
+      "test-temperature-condition.yaml"
+    )
+
+    const schemaErrors = diagnostics.filter(
+      (d) => d.source === "yaml-schema" || d.message.includes("schema")
+    )
+
+    assert.strictEqual(
+      schemaErrors.length,
+      0,
+      `Temperature between/outside thresholds should not produce schema errors: ${schemaErrors
+        .map((d) => d.message)
+        .join("; ")}`
+    )
+  })
+
+  test("Invalid selector trigger option is flagged", async () => {
+    const { diagnostics } = await testSchemaValidation(
+      `
+automation:
+  - id: invalid_selector_trigger_test
+    alias: Invalid Selector Trigger Test
+    trigger:
+      - trigger: climate.hvac_mode_changed
+        target:
+          entity_id: climate.living_room
+        options:
+          invalid_option: heat
+    action:
+      - action: light.turn_on
+        target:
+          entity_id: light.living_room
+`,
+      "test-invalid-selector-trigger.yaml"
+    )
+
+    console.log("Selector trigger diagnostics found:", diagnostics.length)
+    diagnostics.forEach((d) => console.log(`Line ${d.range.start.line}: ${d.message}`))
+
+    assert.ok(
+      diagnostics.some((d) => d.message.includes("invalid_option")),
+      "Schema validation should flag the invalid selector trigger option"
+    )
+  })
+
   test("Valid automation schema passes validation", async () => {
     // Create a valid automation
     const { diagnostics } = await testSchemaValidation(`
