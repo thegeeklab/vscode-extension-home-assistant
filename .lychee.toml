@@ -1,0 +1,8 @@
+no_progress = true
+format = "detailed"
+
+max_redirects = 10
+max_retries = 2
+max_concurrency = 10
+
+retry_wait_time = 30

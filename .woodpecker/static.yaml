@@ -34,7 +34,7 @@ steps:
     image: docker.io/lycheeverse/lychee:0.24
     depends_on: []
     commands:
-      - lychee --no-progress --format detailed README.md
+      - lychee -c .lychee.toml README.md
     environment:
       GITHUB_TOKEN:
         from_secret: github_token_ro

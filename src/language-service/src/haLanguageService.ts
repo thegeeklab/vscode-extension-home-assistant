@@ -54,6 +54,15 @@ export class HomeAssistantLanguageService {
   private templateCache = new Map<string, { value: string; timestamp: number }>()
   private readonly CACHE_DURATION = 30000 // 30 seconds
 
+  // yaml-language-server validates the scalar after a custom tag without the
+  // tag itself. Track every include tag Home Assistant supports so those
+  // schema diagnostics can be skipped in getDiagnostics().
+  private readonly validIncludeTags = new Set(
+    Object.values(Includetype)
+      .filter((includeType): includeType is string => typeof includeType === "string")
+      .map((includeType) => `!${includeType}`)
+  )
+
   constructor(
     private yamlLanguageService: LanguageService,
     private haConfig: HomeAssistantConfiguration,
@@ -251,19 +260,19 @@ export class HomeAssistantLanguageService {
         }
       }
 
-      // Fetch the text before the error, this might be "!include"
-      const includeStartChar = Math.max(0, startChar - 9)
-      const includeEndChar = Math.max(0, startChar - 1)
+      // Fetch the text before the error, this might be an include tag. The
+      // scalar after a custom tag is validated without the tag itself, so a
+      // valid `!include_dir_list`/`!include_dir_named` directive is reported
+      // as a schema error. Skip those: the included content is validated in
+      // its own file.
+      const textBeforeDiagnostic = document
+        .getText(Range.create(startLine, 0, startLine, startChar))
+        .trimEnd()
+      const possibleInclude = textBeforeDiagnostic.match(/!\w+$/)?.[0]
 
-      if (includeStartChar < includeEndChar) {
-        const possibleInclude = document.getText(
-          Range.create(startLine, includeStartChar, endLine, includeEndChar)
-        )
-
-        // Skip errors about include, everything can be included
-        if (possibleInclude === "!include") {
-          continue
-        }
+      // Skip errors about include, everything can be included
+      if (possibleInclude && this.validIncludeTags.has(possibleInclude)) {
+        continue
       }
 
       diagnosticItem.severity = 1 // Convert all warnings to errors
