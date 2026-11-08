@@ -235,4 +235,107 @@ automation:
       "Should flag the valid but unknown entity"
     )
   })
+
+  test("Entity validation does not flag list items under unrelated properties", async () => {
+    const testContent = `
+automation:
+  - trigger:
+      - platform: state
+        entity_id:
+          - light.kitchen
+    action:
+      - action: script.do_thing
+        data:
+          payload:
+            - light.fake_entity
+`
+
+    const document = TextDocument.create("file:///test-scope.yaml", "yaml", 1, testContent)
+
+    const diagnostics = await languageService.getDiagnostics(document)
+    const entityDiagnostics = diagnostics.filter(
+      (d) => d.source === "home-assistant" && d.code === "unknown-entity"
+    )
+
+    assert.strictEqual(
+      entityDiagnostics.length,
+      0,
+      `List items under unrelated properties should not be treated as entities, got ${JSON.stringify(
+        entityDiagnostics.map((d) => d.message)
+      )}`
+    )
+  })
+
+  test("Entity validation handles null-value sequence items in entity lists", async () => {
+    const testContent = `
+automation:
+  - trigger:
+      - platform: state
+        entity_id:
+          -
+          - light.fake_entity
+`
+
+    const document = TextDocument.create("file:///test-null-item.yaml", "yaml", 1, testContent)
+
+    const diagnostics = await languageService.getDiagnostics(document)
+    const entityDiagnostics = diagnostics.filter(
+      (d) => d.source === "home-assistant" && d.code === "unknown-entity"
+    )
+
+    assert.strictEqual(
+      entityDiagnostics.length,
+      1,
+      `A null-value sequence item should not break entity list detection, got ${JSON.stringify(
+        entityDiagnostics.map((d) => d.message)
+      )}`
+    )
+
+    const foundEntity = (entityDiagnostics[0].message as string).match(/Entity '([^']+)'/)?.[1]
+    assert.strictEqual(foundEntity, "light.fake_entity", "Should flag the unknown entity")
+  })
+
+  test("Entity validation distinguishes disabled entities from missing ones", async () => {
+    const connection = new MockHaConnection({
+      entities: {},
+      entityRegistry: {
+        "switch.disabled_switch": {
+          entity_id: "switch.disabled_switch",
+          disabled_by: "user"
+        }
+      }
+    })
+
+    const disabledService = await createMockLanguageService(connection, new MockFileAccessor())
+
+    const testContent = `
+automation:
+  - alias: "Disabled entity test"
+    action:
+      - action: switch.turn_on
+        entity_id: switch.disabled_switch
+`
+
+    const document = TextDocument.create("file:///test-disabled.yaml", "yaml", 1, testContent)
+
+    const diagnostics = await disabledService.getDiagnostics(document)
+
+    const disabledDiagnostics = diagnostics.filter(
+      (d) => d.source === "home-assistant" && d.code === "disabled-entity"
+    )
+    const unknownDiagnostics = diagnostics.filter(
+      (d) => d.source === "home-assistant" && d.code === "unknown-entity"
+    )
+
+    assert.strictEqual(
+      disabledDiagnostics.length,
+      1,
+      "Disabled entity should produce a disabled-entity diagnostic"
+    )
+    assert.strictEqual(
+      unknownDiagnostics.length,
+      0,
+      "Disabled entity should not produce an unknown-entity diagnostic"
+    )
+  })
 })

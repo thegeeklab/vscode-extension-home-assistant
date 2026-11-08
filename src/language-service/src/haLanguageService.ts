@@ -20,7 +20,7 @@ import { DeviceCompletionContribution } from "./completionHelpers/deviceIds.js"
 import { EntityIdCompletionContribution } from "./completionHelpers/entityIds.js"
 import { FloorCompletionContribution } from "./completionHelpers/floors.js"
 import { LabelCompletionContribution } from "./completionHelpers/labels.js"
-import { HaConnection } from "./home-assistant/haConnection.js"
+import { HaConnection, HassEntityRegistry } from "./home-assistant/haConnection.js"
 import { ServicesCompletionContribution } from "./completionHelpers/services.js"
 import { DomainCompletionContribution } from "./completionHelpers/domains.js"
 import { UuidCompletionContribution } from "./completionHelpers/uuids.js"
@@ -260,6 +260,21 @@ export class HomeAssistantLanguageService {
         }
       }
 
+      // Fetch the text before the error, this might be "!env_var"
+      const envVarStartChar = Math.max(0, startChar - 9)
+      const envVarEndChar = Math.max(0, startChar - 1)
+
+      if (envVarStartChar < envVarEndChar) {
+        const possibleEnvVar = document.getText(
+          Range.create(startLine, envVarStartChar, endLine, envVarEndChar)
+        )
+
+        // Skip errors about environment variables, they are expanded at runtime
+        if (possibleEnvVar === "!env_var") {
+          continue
+        }
+      }
+
       // Fetch the text before the error, this might be an include tag. The
       // scalar after a custom tag is validated without the tag itself, so a
       // valid `!include_dir_list`/`!include_dir_named` directive is reported
@@ -316,12 +331,70 @@ export class HomeAssistantLanguageService {
     return diagnostics
   }
 
+  /**
+   * Returns whether a sequence item belongs to a block-style property list.
+   *
+   * A blank line is not a reliable YAML scope boundary. Walk backwards within
+   * the current YAML indentation scope. Sibling sequence items with matching
+   * indentation continue the search for the parent property header, while
+   * sibling keys or parent mappings/items end the property list.
+   */
+  private isInMultiLinePropertyList(
+    lines: string[],
+    lineIndex: number,
+    propertyNames: string[]
+  ): boolean {
+    const itemIndent = lines[lineIndex].match(/^(\s*)/)?.[1].length ?? 0
+    const propertyPatterns = propertyNames.map(
+      (propertyName) => new RegExp(`^\\s*${propertyName}\\s*:\\s*$`)
+    )
+
+    for (let index = lineIndex - 1; index >= 0; index--) {
+      const line = lines[index]
+      const trimmedLine = line.trim()
+
+      if (trimmedLine === "" || trimmedLine.startsWith("#")) {
+        continue
+      }
+
+      const indent = line.match(/^(\s*)/)?.[1].length ?? 0
+      const isProperty = propertyPatterns.some((pattern) => pattern.test(line))
+
+      if (isProperty && indent <= itemIndent) {
+        return true
+      }
+
+      // A preceding sibling list item belongs to the same list; keep searching
+      // for the parent property header. A bare "-" is a null-value sequence
+      // item and also belongs to the same list.
+      if ((trimmedLine.startsWith("- ") || trimmedLine === "-") && indent === itemIndent) {
+        continue
+      }
+
+      // Any other sibling key or parent mapping/list item ends the property list.
+      if (indent <= itemIndent) {
+        return false
+      }
+    }
+
+    return false
+  }
+
   private validateEntityIds = async (document: TextDocument): Promise<Diagnostic[]> => {
     const diagnostics: Diagnostic[] = []
 
     try {
-      // Get all entities from Home Assistant
-      const entities = await this.haConnection.getHassEntities()
+      // Get all entities from Home Assistant, together with the entity registry
+      // so disabled entities can be distinguished from truly missing ones.
+      const [entities, entityRegistry] = await Promise.all([
+        this.haConnection.getHassEntities(),
+        this.haConnection.getHassEntityRegistry().catch((error): HassEntityRegistry => {
+          // A registry lookup improves the diagnostic but must not prevent
+          // entity validation when the registry is unavailable.
+          console.log("Could not fetch the Home Assistant entity registry:", error)
+          return {}
+        })
+      ])
       if (!entities) {
         // If we can't get entities (e.g., not connected), don't validate
         console.log("Entity validation skipped: No entities available from Home Assistant")
@@ -330,6 +403,20 @@ export class HomeAssistantLanguageService {
 
       const entityIds = Object.keys(entities)
       console.log(`Entity validation: Found ${entityIds.length} entities from Home Assistant`)
+
+      const getEntityDiagnosticDetails = (entityId: string) => {
+        const registryEntry = entityRegistry[entityId]
+        if (registryEntry && registryEntry.disabled_by !== null) {
+          return {
+            code: "disabled-entity",
+            message: `Entity '${entityId}' is disabled in your Home Assistant instance`
+          }
+        }
+        return {
+          code: "unknown-entity",
+          message: `Entity '${entityId}' does not exist in your Home Assistant instance`
+        }
+      }
 
       const text = document.getText()
       const lines = text.split("\n")
@@ -376,13 +463,14 @@ export class HomeAssistantLanguageService {
               )
               const startColumn = match.index! + match[0].indexOf(entityValue)
               const endColumn = startColumn + entityValue.length
+              const diagnosticDetails = getEntityDiagnosticDetails(cleanEntityValue)
 
               const diagnostic: Diagnostic = {
                 severity: 2, // Warning
                 range: Range.create(lineIndex, startColumn, lineIndex, endColumn),
-                message: `Entity '${cleanEntityValue}' does not exist in your Home Assistant instance`,
+                message: diagnosticDetails.message,
                 source: "home-assistant",
-                code: "unknown-entity"
+                code: diagnosticDetails.code
               }
 
               diagnostics.push(diagnostic)
@@ -422,13 +510,14 @@ export class HomeAssistantLanguageService {
                 const startColumn =
                   arrayMatch.index! + arrayMatch[0].indexOf("[") + 1 + entityStartInArray
                 const endColumn = startColumn + entityInArray.length
+                const diagnosticDetails = getEntityDiagnosticDetails(cleanEntityValue)
 
                 const diagnostic: Diagnostic = {
                   severity: 2, // Warning
                   range: Range.create(lineIndex, startColumn, lineIndex, endColumn),
-                  message: `Entity '${cleanEntityValue}' does not exist in your Home Assistant instance`,
+                  message: diagnosticDetails.message,
                   source: "home-assistant",
-                  code: "unknown-entity"
+                  code: diagnosticDetails.code
                 }
 
                 diagnostics.push(diagnostic)
@@ -439,27 +528,13 @@ export class HomeAssistantLanguageService {
 
         // Handle multi-line entity arrays
         if (line.trim().startsWith("- ")) {
-          // Check if we're in an entity list context by looking at previous lines
-          let currentLineIndex = lineIndex - 1
-          let foundEntityProperty = false
-
-          while (currentLineIndex >= 0 && lines[currentLineIndex].trim() !== "") {
-            const prevLine = lines[currentLineIndex]
-
-            for (const propertyName of EntityIdCompletionContribution.propertyMatches) {
-              if (new RegExp(`\\s*${propertyName}\\s*:\\s*$`).test(prevLine)) {
-                foundEntityProperty = true
-                break
-              }
-            }
-
-            if (foundEntityProperty) {
-              break
-            }
-            currentLineIndex--
-          }
-
-          if (foundEntityProperty) {
+          if (
+            this.isInMultiLinePropertyList(
+              lines,
+              lineIndex,
+              EntityIdCompletionContribution.propertyMatches
+            )
+          ) {
             const entityMatch = line.match(/^\s*-\s*([^#\n]+)/)
             if (entityMatch) {
               const entityValue = entityMatch[1].trim().replace(/^["']|["']$/g, "")
@@ -482,13 +557,14 @@ export class HomeAssistantLanguageService {
               if (!entityIds.includes(entityValue)) {
                 const startColumn = entityMatch.index! + entityMatch[0].indexOf(entityValue)
                 const endColumn = startColumn + entityValue.length
+                const diagnosticDetails = getEntityDiagnosticDetails(entityValue)
 
                 const diagnostic: Diagnostic = {
                   severity: 2, // Warning
                   range: Range.create(lineIndex, startColumn, lineIndex, endColumn),
-                  message: `Entity '${entityValue}' does not exist in your Home Assistant instance`,
+                  message: diagnosticDetails.message,
                   source: "home-assistant",
-                  code: "unknown-entity"
+                  code: diagnosticDetails.code
                 }
 
                 diagnostics.push(diagnostic)
@@ -653,27 +729,13 @@ export class HomeAssistantLanguageService {
 
         // Handle multi-line area arrays
         if (line.trim().startsWith("- ")) {
-          // Check if we're in an area list context by looking at previous lines
-          let currentLineIndex = lineIndex - 1
-          let foundAreaProperty = false
-
-          while (currentLineIndex >= 0 && lines[currentLineIndex].trim() !== "") {
-            const prevLine = lines[currentLineIndex]
-
-            for (const propertyName of AreaCompletionContribution.propertyMatches) {
-              if (new RegExp(`\\s*${propertyName}\\s*:\\s*$`).test(prevLine)) {
-                foundAreaProperty = true
-                break
-              }
-            }
-
-            if (foundAreaProperty) {
-              break
-            }
-            currentLineIndex--
-          }
-
-          if (foundAreaProperty) {
+          if (
+            this.isInMultiLinePropertyList(
+              lines,
+              lineIndex,
+              AreaCompletionContribution.propertyMatches
+            )
+          ) {
             const areaMatch = line.match(/^\s*-\s*([^#\n]+)/)
             if (areaMatch) {
               const areaValue = areaMatch[1].trim().replace(/^["']|["']$/g, "")
@@ -877,27 +939,13 @@ export class HomeAssistantLanguageService {
 
         // Handle multi-line device arrays
         if (line.trim().startsWith("- ")) {
-          // Check if we're in a device list context by looking at previous lines
-          let currentLineIndex = lineIndex - 1
-          let foundDeviceProperty = false
-
-          while (currentLineIndex >= 0 && lines[currentLineIndex].trim() !== "") {
-            const prevLine = lines[currentLineIndex]
-
-            for (const propertyName of DeviceCompletionContribution.propertyMatches) {
-              if (new RegExp(`\\s*${propertyName}\\s*:\\s*$`).test(prevLine)) {
-                foundDeviceProperty = true
-                break
-              }
-            }
-
-            if (foundDeviceProperty) {
-              break
-            }
-            currentLineIndex--
-          }
-
-          if (foundDeviceProperty) {
+          if (
+            this.isInMultiLinePropertyList(
+              lines,
+              lineIndex,
+              DeviceCompletionContribution.propertyMatches
+            )
+          ) {
             const deviceMatch = line.match(/^\s*-\s*([^#\n]+)/)
             if (deviceMatch) {
               const deviceValue = deviceMatch[1].trim().replace(/^["']|["']$/g, "")
@@ -1101,27 +1149,13 @@ export class HomeAssistantLanguageService {
 
         // Handle multi-line floor arrays
         if (line.trim().startsWith("- ")) {
-          // Check if we're in a floor list context by looking at previous lines
-          let currentLineIndex = lineIndex - 1
-          let foundFloorProperty = false
-
-          while (currentLineIndex >= 0 && lines[currentLineIndex].trim() !== "") {
-            const prevLine = lines[currentLineIndex]
-
-            for (const propertyName of FloorCompletionContribution.propertyMatches) {
-              if (new RegExp(`\\s*${propertyName}\\s*:\\s*$`).test(prevLine)) {
-                foundFloorProperty = true
-                break
-              }
-            }
-
-            if (foundFloorProperty) {
-              break
-            }
-            currentLineIndex--
-          }
-
-          if (foundFloorProperty) {
+          if (
+            this.isInMultiLinePropertyList(
+              lines,
+              lineIndex,
+              FloorCompletionContribution.propertyMatches
+            )
+          ) {
             const floorMatch = line.match(/^\s*-\s*([^#\n]+)/)
             if (floorMatch) {
               const floorValue = floorMatch[1].trim().replace(/^["']|["']$/g, "")
@@ -1457,27 +1491,13 @@ export class HomeAssistantLanguageService {
 
         // Handle multi-line label arrays
         if (line.trim().startsWith("- ")) {
-          // Check if we're in a label list context by looking at previous lines
-          let currentLineIndex = lineIndex - 1
-          let foundLabelProperty = false
-
-          while (currentLineIndex >= 0 && lines[currentLineIndex].trim() !== "") {
-            const prevLine = lines[currentLineIndex]
-
-            for (const propertyName of LabelCompletionContribution.propertyMatches) {
-              if (new RegExp(`\\s*${propertyName}\\s*:\\s*$`).test(prevLine)) {
-                foundLabelProperty = true
-                break
-              }
-            }
-
-            if (foundLabelProperty) {
-              break
-            }
-            currentLineIndex--
-          }
-
-          if (foundLabelProperty) {
+          if (
+            this.isInMultiLinePropertyList(
+              lines,
+              lineIndex,
+              LabelCompletionContribution.propertyMatches
+            )
+          ) {
             const labelMatch = line.match(/^\s*-\s*([^#\n]+)/)
             if (labelMatch) {
               const labelValue = labelMatch[1].trim().replace(/^["']|["']$/g, "")
@@ -1708,27 +1728,13 @@ export class HomeAssistantLanguageService {
             continue
           }
 
-          // Check if we're in an action list context by looking at previous lines
-          let currentLineIndex = lineIndex - 1
-          let foundActionProperty = false
-
-          while (currentLineIndex >= 0 && lines[currentLineIndex].trim() !== "") {
-            const prevLine = lines[currentLineIndex]
-
-            for (const propertyName of ServicesCompletionContribution.propertyMatches) {
-              if (new RegExp(`\\s*${propertyName}\\s*:\\s*$`).test(prevLine)) {
-                foundActionProperty = true
-                break
-              }
-            }
-
-            if (foundActionProperty) {
-              break
-            }
-            currentLineIndex--
-          }
-
-          if (foundActionProperty) {
+          if (
+            this.isInMultiLinePropertyList(
+              lines,
+              lineIndex,
+              ServicesCompletionContribution.propertyMatches
+            )
+          ) {
             const actionMatch = line.match(/^\s*-\s*([^#\n]+)/)
             if (actionMatch) {
               const actionValue = actionMatch[1].trim().replace(/^["']|["']$/g, "")
