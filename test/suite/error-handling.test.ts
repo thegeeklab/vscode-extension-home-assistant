@@ -37,6 +37,15 @@ class ErrorSimulatingFileAccessor implements FileAccessor {
     }
   }
 
+  async exists(fileName: string): Promise<boolean> {
+    try {
+      await fs.access(fileName)
+      return true
+    } catch {
+      return false
+    }
+  }
+
   async getFilesInFolder(subFolder: string): Promise<string[]> {
     if (this.shouldFailOnFile && subFolder.includes(this.shouldFailOnFile)) {
       throw new Error(`Simulated error reading directory: ${subFolder}`)

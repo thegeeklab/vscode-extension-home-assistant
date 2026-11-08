@@ -6,6 +6,7 @@ import * as vscodeUri from "vscode-uri"
 
 export interface FileAccessor {
   getFileContents(fileName: string): Promise<string>
+  exists(fileName: string): Promise<boolean>
   getFilesInFolder(subFolder: string): Promise<string[]>
   getFilesInFolderRelativeFrom(subFolder: string, relativeFrom: string): Promise<string[]>
   getFilesInFolderRelativeFromAsFileUri(subFolder: string, relativeFrom: string): Promise<string[]>
@@ -43,6 +44,15 @@ export class VsCodeFileAccessor implements FileAccessor {
       } else {
         throw err
       }
+    }
+  }
+
+  public async exists(fileName: string): Promise<boolean> {
+    try {
+      await fs.access(fileName)
+      return true
+    } catch {
+      return false
     }
   }
 

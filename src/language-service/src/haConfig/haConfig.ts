@@ -127,11 +127,18 @@ export class HomeAssistantConfiguration {
         ourFiles.some((ourFile) => f.endsWith(ourFile))
       )
       if (areOurFilesSomewhere.length > 0) {
-        this.subFolder = areOurFilesSomewhere[0].substr(
-          0,
-          areOurFilesSomewhere[0].lastIndexOf(path.sep)
+        // When the workspace contains multiple configuration.yaml files (e.g.
+        // this extension's own test fixtures), use the shallowest matching
+        // directory as the Home Assistant configuration root so unrelated
+        // subfolders are not mixed into the same configuration.
+        const dirNames = areOurFilesSomewhere.map((f) => path.dirname(f))
+        const rootDir = dirNames.reduce((shallowest, current) =>
+          current.split(path.sep).length < shallowest.split(path.sep).length
+            ? current
+            : shallowest
         )
-        return areOurFilesSomewhere
+        this.subFolder = rootDir
+        return areOurFilesSomewhere.filter((_, index) => dirNames[index] === rootDir)
       }
     }
 

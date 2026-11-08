@@ -103,7 +103,15 @@ export class SchemaServiceForIncludes {
         // yaml-language-server's getSchemaCandidatesForResource matches the raw
         // document URI (VS Code uses encoded Windows drive letters like c%3A) and
         // does not normalize before picomatch. Use URI.toString() (encoded).
-        const absolutePath = await fs.realpath(haFiles[sourceFile].filename)
+        let absolutePath: string
+        try {
+          absolutePath = await fs.realpath(haFiles[sourceFile].filename)
+        } catch {
+          // The file does not exist (e.g. an !include referencing a file that
+          // has not been created yet). Skip it instead of failing the whole
+          // schema update.
+          continue
+        }
         const fileUri = vscodeUri.URI.file(absolutePath)
         const fileass = fileUri.toString() // encoded: file:///c%3A/...
         const fileassUnencoded = fileUri.toString(true) // file:///c:/...

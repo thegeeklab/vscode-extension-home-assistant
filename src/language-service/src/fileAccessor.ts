@@ -1,5 +1,6 @@
 export interface FileAccessor {
   getFileContents(fileName: string): Promise<string>
+  exists(fileName: string): Promise<boolean>
   getFilesInFolder(subFolder: string): Promise<string[]>
   getFilesInFolderRelativeFrom(subFolder: string, relativeFrom: string): Promise<string[]>
   getFilesInFolderRelativeFromAsFileUri(subFolder: string, relativeFrom: string): Promise<string[]>
