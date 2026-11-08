@@ -1,4 +1,4 @@
-import { readFile, readdir } from "node:fs/promises"
+import { access, readFile, readdir } from "node:fs/promises"
 import { dirname, resolve } from "node:path"
 import { CompletionItem, MarkupContent } from "vscode-languageserver-protocol"
 import { HassEntities, HassServices } from "home-assistant-js-websocket"
@@ -117,6 +117,15 @@ export class TestFileAccessor implements FileAccessor {
     } catch (error) {
       console.error(`Error reading file ${fileName}:`, error)
       return ""
+    }
+  }
+
+  async exists(fileName: string): Promise<boolean> {
+    try {
+      await access(fileName)
+      return true
+    } catch {
+      return false
     }
   }
 

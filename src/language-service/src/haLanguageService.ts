@@ -1808,32 +1808,39 @@ export class HomeAssistantLanguageService {
     textDocument: TextDocument,
     position: Position
   ): Promise<CompletionList> => {
-    const result: CompletionList = {
+    const emptyResult: CompletionList = {
       items: [],
       isIncomplete: false
     }
 
     if (!textDocument) {
-      return Promise.resolve(result)
+      return emptyResult
     }
 
-    const currentCompletions: CompletionList = await this.yamlLanguageService.doComplete(
-      textDocument,
-      position,
-      false
-    )
+    try {
+      const currentCompletions: CompletionList = await this.yamlLanguageService.doComplete(
+        textDocument,
+        position,
+        false
+      )
 
-    const additionalCompletions = await this.getServiceAndEntityCompletions(
-      textDocument,
-      position,
-      currentCompletions
-    )
+      const additionalCompletions = await this.getServiceAndEntityCompletions(
+        textDocument,
+        position,
+        currentCompletions
+      )
 
-    if (additionalCompletions.length === 0) {
-      return currentCompletions
+      if (additionalCompletions.length === 0) {
+        return currentCompletions
+      }
+
+      return CompletionList.create(additionalCompletions, false)
+    } catch (error) {
+      // Do not let a completion failure surface to the client as an internal
+      // error (-32603). Return an empty list instead.
+      console.log(`Completion failed, returning empty result: ${error}`)
+      return emptyResult
     }
-
-    return CompletionList.create(additionalCompletions, false)
   }
 
   public onCompletionResolve = async (completionItem: CompletionItem): Promise<CompletionItem> => {

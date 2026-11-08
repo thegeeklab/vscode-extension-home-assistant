@@ -205,7 +205,14 @@ export class HomeAssistantYamlFile {
     if (includeType === Includetype.include) {
       const relativeFilePath = this.fileAccessor.getRelativePath(this.filename, String(value))
       // single file include
-      files.push(relativeFilePath)
+      if (await this.fileAccessor.exists(relativeFilePath)) {
+        files.push(relativeFilePath)
+      } else {
+        console.log(
+          `The include could not be resolved because the file '${value}' referenced with '${Includetype[includeType]}' from '${this.filename}' does not exist`
+        )
+        return
+      }
     } else {
       // multiple file include
       const filesInThisFolder = await this.fileAccessor.getFilesInFolderRelativeFrom(
@@ -213,12 +220,12 @@ export class HomeAssistantYamlFile {
         this.filename
       )
       files = filesInThisFolder.filter((f) => path.extname(f) === ".yaml")
-    }
 
-    if (files.length === 0) {
-      console.log(
-        `The include could not be resolved because no file(s) found in '${value}' included with '${Includetype[includeType]}' from '${this.filename}'`
-      )
+      if (files.length === 0) {
+        console.log(
+          `The include could not be resolved because no file(s) found in '${value}' included with '${Includetype[includeType]}' from '${this.filename}'`
+        )
+      }
     }
 
     for (const file of files) {
