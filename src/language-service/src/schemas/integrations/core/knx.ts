@@ -3,6 +3,7 @@
  * Source: https://github.com/home-assistant/core/blob/dev/homeassistant/components/knx/__init__.py
  */
 import {
+  AutomationMetadata,
   Data,
   DeviceClassesBinarySensor,
   DeviceClassesCover,
@@ -1617,7 +1618,7 @@ interface TimeEntity {
   sync_state?: boolean | number | string
 }
 
-export interface KnxTelegramTrigger {
+export interface KnxTelegramTrigger extends AutomationMetadata {
   /**
    * Alias for the KNX telegram trigger.
    */

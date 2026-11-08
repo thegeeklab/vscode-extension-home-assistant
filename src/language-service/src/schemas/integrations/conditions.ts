@@ -3,6 +3,7 @@
  * Source: https://github.com/home-assistant/core/blob/dev/homeassistant/helpers/config_validation.py
  */
 import {
+  AutomationMetadata,
   DeviceTrackerEntities,
   DynamicTemplate,
   Entities,
@@ -37,12 +38,51 @@ export type Condition =
   | ShorthandCondition
   | StateCondition
   | SunCondition
+  | TemperatureIsValueCondition
   | TemplateCondition
   | TimeCondition
   | TriggerCondition
   | ZoneCondition
 
-export interface ShorthandCondition {
+interface TemperatureIsValueCondition extends AutomationMetadata {
+  alias?: string
+  enabled?: boolean
+  condition: "temperature.is_value"
+  target: { entity_id: Entities }
+  options: {
+    behavior?: "any" | "all"
+    for?: TimePeriod
+    threshold: {
+      type: "above" | "below" | "between" | "outside"
+      value?:
+        | number
+        | {
+            active_choice?: "number" | "entity"
+            number?: number
+            entity?: string
+            unit_of_measurement?: string
+          }
+      value_min?:
+        | number
+        | {
+            active_choice?: "number" | "entity"
+            number?: number
+            entity?: string
+            unit_of_measurement?: string
+          }
+      value_max?:
+        | number
+        | {
+            active_choice?: "number" | "entity"
+            number?: number
+            entity?: string
+            unit_of_measurement?: string
+          }
+    }
+  }
+}
+
+export interface ShorthandCondition extends AutomationMetadata {
   /**
    * Alias for the and condition.
    */
@@ -61,7 +101,7 @@ export interface ShorthandCondition {
   condition: DynamicTemplate
 }
 
-export interface AndCondition {
+export interface AndCondition extends AutomationMetadata {
   /**
    * Alias for the and condition.
    */
@@ -86,7 +126,7 @@ export interface AndCondition {
   conditions: Condition | Condition[] | IncludeList
 }
 
-export interface AndShorthandCondition {
+export interface AndShorthandCondition extends AutomationMetadata {
   /**
    * Alias for the and condition.
    */
@@ -107,7 +147,7 @@ export interface AndShorthandCondition {
 /**
  * @TJS-additionalProperties true
  */
-export interface DeviceCondition {
+export interface DeviceCondition extends AutomationMetadata {
   /**
    * Alias for the device condition.
    */
@@ -135,7 +175,7 @@ export interface DeviceCondition {
   domain: string
 }
 
-export interface NotCondition {
+export interface NotCondition extends AutomationMetadata {
   /**
    * Alias for the not condition.
    */
@@ -159,7 +199,7 @@ export interface NotCondition {
   conditions: Condition | Condition[] | IncludeList
 }
 
-export interface NotShorthandCondition {
+export interface NotShorthandCondition extends AutomationMetadata {
   /**
    * Alias for the not condition.
    */
@@ -177,7 +217,7 @@ export interface NotShorthandCondition {
   not: Condition | Condition[] | IncludeList
 }
 
-export interface NumericStateCondition {
+export interface NumericStateCondition extends AutomationMetadata {
   /**
    * Alias for the numeric state condition.
    */
@@ -225,7 +265,7 @@ export interface NumericStateCondition {
   attribute?: string
 }
 
-export interface OrCondition {
+export interface OrCondition extends AutomationMetadata {
   /**
    * Alias for the or condition.
    */
@@ -249,7 +289,7 @@ export interface OrCondition {
   conditions: Condition | Condition[] | IncludeList
 }
 
-export interface OrShorthandCondition {
+export interface OrShorthandCondition extends AutomationMetadata {
   /**
    * Alias for the or condition.
    */
@@ -267,7 +307,7 @@ export interface OrShorthandCondition {
   or: Condition | Condition[] | IncludeList
 }
 
-export interface StateCondition {
+export interface StateCondition extends AutomationMetadata {
   /**
    * Alias for the state condition.
    */
@@ -315,7 +355,7 @@ export interface StateCondition {
   match?: "any" | "all"
 }
 
-export interface SunCondition {
+export interface SunCondition extends AutomationMetadata {
   /**
    * Alias for the sun condition.
    */
@@ -359,7 +399,7 @@ export interface SunCondition {
   after_offset?: TimePeriod
 }
 
-export interface TemplateCondition {
+export interface TemplateCondition extends AutomationMetadata {
   /**
    * Alias for the template condition.
    */
@@ -383,7 +423,7 @@ export interface TemplateCondition {
   value_template?: Template
 }
 
-export interface TimeCondition {
+export interface TimeCondition extends AutomationMetadata {
   /**
    * Alias for the time condition.
    */
@@ -425,7 +465,7 @@ export interface TimeCondition {
   weekday?: Weekday | Weekday[]
 }
 
-export interface TriggerCondition {
+export interface TriggerCondition extends AutomationMetadata {
   /**
    * Alias for the trigger condition.
    */
@@ -449,7 +489,7 @@ export interface TriggerCondition {
   id: string | string[] | Integer | Integer[]
 }
 
-export interface ZoneCondition {
+export interface ZoneCondition extends AutomationMetadata {
   /**
    * Alias for the zone condition.
    */

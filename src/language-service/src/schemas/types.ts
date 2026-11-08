@@ -1,5 +1,13 @@
 export type Area = string
 
+export interface AutomationMetadata {
+  /**
+   * Note displayed in the Home Assistant automation editor.
+   * https://www.home-assistant.io/docs/automation/editor/#adding-notes-to-an-automation
+   */
+  note?: string
+}
+
 /**
  * From: https://github.com/home-assistant/core/blob/dev/homeassistant/components/light/const.py
  */

@@ -62,6 +62,191 @@ suite("Schema Validation Tests", () => {
     return { document, diagnostics }
   }
 
+  test("Automation schema accepts notes, weekday and selector triggers", async () => {
+    const { diagnostics } = await testSchemaValidation(
+      `
+automation:
+  - id: selector_trigger_test
+    alias: Selector Trigger Test
+    trigger:
+      - trigger: time
+        at: "08:00:00"
+        weekday:
+          - mon
+          - wed
+          - fri
+        note: "Only on weekdays"
+      - trigger: calendar.event_started
+        target:
+          entity_id: calendar.work
+        options:
+          offset: "-00:15:00"
+          offset_type: before
+        note: "Starts soon"
+      - trigger: calendar.event_ended
+        target:
+          entity_id: calendar.work
+      - trigger: climate.hvac_mode_changed
+        target:
+          entity_id: climate.living_room
+        options:
+          behavior: any
+          for: "00:10:00"
+          hvac_mode:
+            - heat
+            - cool
+      - trigger: event.received
+        target:
+          entity_id: sensor.some_sensor
+        options:
+          event_type: custom_event
+        note: "Custom event"
+    condition:
+      - condition: temperature.is_value
+        target:
+          entity_id: sensor.outside_temperature
+        options:
+          behavior: all
+          for: "00:05:00"
+          threshold:
+            type: above
+            value: 20
+        note: "Above 20 degrees"
+    action:
+      - action: light.turn_on
+        note: "Turn on the light"
+        target:
+          entity_id: light.living_room
+`
+    )
+
+    const schemaErrors = diagnostics.filter(
+      (d) => d.source === "yaml-schema" || d.message.includes("schema")
+    )
+
+    assert.strictEqual(
+      schemaErrors.length,
+      0,
+      `Notes, weekday and selector triggers should not produce schema errors: ${schemaErrors
+        .map((d) => d.message)
+        .join("; ")}`
+    )
+  })
+
+  test("Temperature condition accepts between and outside thresholds", async () => {
+    const { diagnostics } = await testSchemaValidation(
+      `
+automation:
+  - id: temperature_threshold_test
+    alias: Temperature Threshold Test
+    trigger:
+      - trigger: state
+        entity_id: sensor.outside_temperature
+    condition:
+      - condition: temperature.is_value
+        target:
+          entity_id: sensor.outside_temperature
+        options:
+          behavior: all
+          for: "00:05:00"
+          threshold:
+            type: between
+            value_min: 18
+            value_max: 24
+      - condition: temperature.is_value
+        target:
+          entity_id: sensor.outside_temperature
+        options:
+          threshold:
+            type: outside
+            value_min: 18
+            value_max: 24
+`,
+      "test-temperature-condition.yaml"
+    )
+
+    const schemaErrors = diagnostics.filter(
+      (d) => d.source === "yaml-schema" || d.message.includes("schema")
+    )
+
+    assert.strictEqual(
+      schemaErrors.length,
+      0,
+      `Temperature between/outside thresholds should not produce schema errors: ${schemaErrors
+        .map((d) => d.message)
+        .join("; ")}`
+    )
+  })
+
+  // This is a structural unit test of the generated schema, not an integration test.
+  // It exists because the YAML language server's anyOf union matching with catch-all
+  // branches (e.g., DeviceTrigger with additionalProperties: true) makes it unreliable
+  // for testing negative cases (unknown properties being rejected).
+  test("Generated schema constrains selector triggers, conditions, and metadata inheritance", async () => {
+    const schema = JSON.parse(
+      await fs.readFile(
+        path.join(
+          import.meta.dirname,
+          "..",
+          "..",
+          "..",
+          "src",
+          "language-service",
+          "src",
+          "schemas",
+          "json",
+          "integration-automation.json"
+        ),
+        "utf-8"
+      )
+    )
+
+    const climateTrigger = schema.definitions.ClimateHvacModeChangedTrigger
+    assert.ok(climateTrigger, "ClimateHvacModeChangedTrigger definition should exist")
+    assert.strictEqual(
+      climateTrigger.properties.options.additionalProperties,
+      false,
+      "selector trigger options must reject unknown properties"
+    )
+    assert.deepStrictEqual(
+      climateTrigger.properties.options.properties.behavior.enum,
+      ["all", "each", "first"],
+      "behavior must be a constrained enum"
+    )
+    assert.ok(
+      climateTrigger.properties.note,
+      "selector triggers must inherit note from AutomationMetadata"
+    )
+
+    const temperatureCondition = schema.definitions.TemperatureIsValueCondition
+    assert.ok(temperatureCondition, "TemperatureIsValueCondition definition should exist")
+    assert.strictEqual(
+      temperatureCondition.additionalProperties,
+      false,
+      "condition must reject unknown properties"
+    )
+    assert.deepStrictEqual(
+      temperatureCondition.properties.options.properties.threshold.properties.type.enum,
+      ["above", "below", "between", "outside"],
+      "threshold type must be a constrained enum"
+    )
+    assert.ok(
+      temperatureCondition.properties.note,
+      "conditions must inherit note from AutomationMetadata"
+    )
+
+    for (const def of [
+      "CalendarEventStartedTrigger",
+      "CalendarEventEndedTrigger",
+      "EventReceivedTrigger"
+    ]) {
+      assert.ok(
+        schema.definitions[def].properties.note,
+        `${def} must inherit note from AutomationMetadata`
+      )
+    }
+  })
+
   test("Valid automation schema passes validation", async () => {
     // Create a valid automation
     const { diagnostics } = await testSchemaValidation(`

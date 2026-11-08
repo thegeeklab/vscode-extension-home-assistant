@@ -1,4 +1,6 @@
-export interface WebOSTvTrigger {
+import { AutomationMetadata } from "../../types.js"
+
+export interface WebOSTvTrigger extends AutomationMetadata {
   /**
    * Trigger fires when WebOS integration attempts to turn on the TV.
    * https://www.home-assistant.io/integrations/webostv/#configuration

@@ -4,6 +4,7 @@
  */
 import {
   Area,
+  AutomationMetadata,
   Data,
   Entities,
   Floor,
@@ -35,7 +36,7 @@ export type Action =
   | VariablesAction
   | Condition // A condition is a valid action
 
-export interface ChooseAction {
+export interface ChooseAction extends AutomationMetadata {
   /**
    * Alias for the choose action.
    */
@@ -90,7 +91,7 @@ export interface ChooseActionItem {
   sequence: Action | Action[] | IncludeList
 }
 
-export interface DelayAction {
+export interface DelayAction extends AutomationMetadata {
   /**
    * Alias for the delay action.
    */
@@ -119,7 +120,7 @@ export interface DelayAction {
 /**
  * @TJS-additionalProperties true
  */
-export interface DeviceAction {
+export interface DeviceAction extends AutomationMetadata {
   /**
    * Alias for the device action.
    */
@@ -150,7 +151,7 @@ export interface DeviceAction {
   domain: string
 }
 
-export interface EventAction {
+export interface EventAction extends AutomationMetadata {
   /**
    * Alias for the Event action.
    */
@@ -188,7 +189,7 @@ export interface EventAction {
   event_data_template?: LegacySyntax
 }
 
-export interface IfAction {
+export interface IfAction extends AutomationMetadata {
   /**
    * Alias for the if action.
    */
@@ -225,7 +226,7 @@ export interface IfAction {
   else?: Action | Action[] | IncludeList
 }
 
-export interface ParallelAction {
+export interface ParallelAction extends AutomationMetadata {
   /**
    * Alias for the parallel action.
    */
@@ -250,7 +251,7 @@ export interface ParallelAction {
   parallel: (Action | Action[] | IncludeList)[] | IncludeList
 }
 
-export interface RepeatAction {
+export interface RepeatAction extends AutomationMetadata {
   /**
    * Alias for the repeat action.
    */
@@ -305,7 +306,7 @@ export interface RepeatAction {
   }
 }
 
-export interface SceneAction {
+export interface SceneAction extends AutomationMetadata {
   /**
    * Alias for the scene action.
    */
@@ -335,7 +336,7 @@ export interface SceneAction {
   metadata?: any
 }
 
-export interface SequenceAction {
+export interface SequenceAction extends AutomationMetadata {
   /**
    * Alias for the sequence action.
    */
@@ -360,7 +361,7 @@ export interface SequenceAction {
   sequence: Action | Action[] | IncludeList
 }
 
-export interface ServiceAction {
+export interface ServiceAction extends AutomationMetadata {
   /**
    * Service call alias.
    * https://www.home-assistant.io/docs/scripts/service-calls/
@@ -464,7 +465,7 @@ export interface ServiceAction {
   response_variable?: string
 }
 
-export interface StopAction {
+export interface StopAction extends AutomationMetadata {
   /**
    * Stop call alias.
    * https://www.home-assistant.io/docs/scripts/#stopping-a-script-sequence
@@ -496,7 +497,7 @@ export interface StopAction {
   response_variable?: string
 }
 
-export interface WaitForTriggerAction {
+export interface WaitForTriggerAction extends AutomationMetadata {
   /**
    * Alias for the wait for trigger action.
    */
@@ -533,7 +534,7 @@ export interface WaitForTriggerAction {
   continue_on_timeout?: boolean
 }
 
-export interface WaitTemplateAction {
+export interface WaitTemplateAction extends AutomationMetadata {
   /**
    * Alias for the wait action.
    */
@@ -570,7 +571,7 @@ export interface WaitTemplateAction {
   continue_on_timeout?: boolean
 }
 
-export interface VariablesAction {
+export interface VariablesAction extends AutomationMetadata {
   /**
    * Alias for the variables action.
    */
