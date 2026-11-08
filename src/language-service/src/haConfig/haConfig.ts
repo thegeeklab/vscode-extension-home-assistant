@@ -133,9 +133,7 @@ export class HomeAssistantConfiguration {
         // subfolders are not mixed into the same configuration.
         const dirNames = areOurFilesSomewhere.map((f) => path.dirname(f))
         const rootDir = dirNames.reduce((shallowest, current) =>
-          current.split(path.sep).length < shallowest.split(path.sep).length
-            ? current
-            : shallowest
+          current.split(path.sep).length < shallowest.split(path.sep).length ? current : shallowest
         )
         this.subFolder = rootDir
         return areOurFilesSomewhere.filter((_, index) => dirNames[index] === rootDir)
