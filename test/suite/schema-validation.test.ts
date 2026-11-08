@@ -247,6 +247,53 @@ automation:
     }
   })
 
+  test("Template schema accepts name, plural triggers and switch base fields", async () => {
+    const { diagnostics } = await testSchemaValidation(
+      `
+template:
+  - name: "Trigger Template"
+    default_entity_id: sensor.trigger_template
+    triggers:
+      - trigger: state
+        entity_id: sensor.input
+    conditions:
+      - condition: template
+        value_template: "{{ true }}"
+    actions:
+      - action: light.turn_on
+        target:
+          entity_id: light.living_room
+    variables:
+      my_var: "hello"
+    sensor:
+      - name: "Inner Sensor"
+        state: "{{ states('sensor.input') }}"
+    switch:
+      - name: "Switch Name"
+        turn_on:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.living_room
+        turn_off:
+          - action: switch.turn_off
+            target:
+              entity_id: switch.living_room
+`
+    )
+
+    const schemaErrors = diagnostics.filter(
+      (d) => d.source === "yaml-schema" || d.message.includes("schema")
+    )
+
+    assert.strictEqual(
+      schemaErrors.length,
+      0,
+      `Template name, plural triggers and switch base fields should not produce schema errors: ${schemaErrors
+        .map((d) => d.message)
+        .join("; ")}`
+    )
+  })
+
   test("Valid automation schema passes validation", async () => {
     // Create a valid automation
     const { diagnostics } = await testSchemaValidation(`
