@@ -3,6 +3,7 @@
  * Source: https://github.com/home-assistant/core/blob/dev/homeassistant/components/template/
  */
 import {
+  Data,
   DeviceClassesBinarySensor,
   DeviceClassesCover,
   DeviceClassesSensor,
@@ -135,10 +136,22 @@ export interface Item {
   action?: Action | Action[]
 
   /**
+   * Define actions to be executed when the trigger fires (current syntax since Home Assistant 2024.10).
+   * https://www.home-assistant.io/integrations/template/#action
+   */
+  actions?: Action | Action[] | IncludeList
+
+  /**
    * Define conditions that have to be met after a trigger fires and before any actions are executed or sensor updates are performed (for trigger-based entities only). Optional. See condition documentation.
    * https://www.home-assistant.io/integrations/template/#condition
    */
   condition?: Condition | Condition[] | DynamicTemplate | IncludeList
+
+  /**
+   * Conditions that have to be met after a trigger fires (current syntax since Home Assistant 2024.10).
+   * https://www.home-assistant.io/integrations/template/#condition
+   */
+  conditions?: Condition | Condition[] | DynamicTemplate | IncludeList
 
   /**
    * Define an automation trigger to update the entities. Optional. If omitted will update based on referenced entities. See trigger documentation.
@@ -147,10 +160,34 @@ export interface Item {
   trigger?: Trigger | Trigger[] | IncludeList
 
   /**
+   * Automation triggers that update the entities (current syntax since Home Assistant 2024.10).
+   * https://www.home-assistant.io/integrations/template#trigger
+   */
+  triggers?: Trigger | Trigger[] | IncludeList
+
+  /**
+   * Key-value pairs of variable definitions which can be referenced and used in the templates below (for trigger-based entities only). Mostly used by blueprints. With State-based template entities, variables are only resolved when the configuration is loaded or reloaded. Trigger based template entities resolve variables between triggers and actions.
+   * https://www.home-assistant.io/integrations/template/
+   */
+  variables?: Data
+
+  /**
    * Define template sensors or binary sensors based on a blueprint. Optional. See template template documentation.
    * https://www.home-assistant.io/integrations/template/#using-blueprints
    */
   use_blueprint?: BlueprintUsage
+
+  /**
+   * Defines a template to get the name of the entity.
+   * https://www.home-assistant.io/integrations/template#name
+   */
+  name?: Template
+
+  /**
+   * Use default_entity_id instead of name for automatic generation of the entity id. E.g. sensor.my_awesome_sensor. When used without a unique_id, the entity id will update during restart or reload if the entity id is available. If the entity id already exists, the entity id will be created with a number at the end. When used with a unique_id, the default_entity_id is only used when the entity is added for the first time. When set, this overrides a user-customized Entity ID in case the entity was deleted and added again.
+   * https://www.home-assistant.io/integrations/template#default_entity_id
+   */
+  default_entity_id?: string
 
   /**
    * The unique ID for this config block. This will be prefixed to all unique IDs of all entities in this block.
@@ -756,25 +793,7 @@ export interface SensorItem extends BaseItem {
   unit_of_measurement?: string
 }
 
-interface SwitchItem {
-  /**
-   * Defines a template to get the available state of the component. If the template returns true, the device is available.
-   * https://www.home-assistant.io/integrations/switch.template#availability_template
-   */
-  availability?: Template
-
-  /**
-   * Name to use in the frontend.
-   * https://www.home-assistant.io/integrations/switch.template#friendly_name
-   */
-  name?: string
-
-  /**
-   * Defines a template for the icon of the switch.
-   * https://www.home-assistant.io/integrations/switch.template#icon_template
-   */
-  icon?: Template
-
+export interface SwitchItem extends BaseItem {
   /**
    * Defines an action to run when the switch is turned off.
    * https://www.home-assistant.io/integrations/switch.template#turn_off
@@ -786,12 +805,6 @@ interface SwitchItem {
    * https://www.home-assistant.io/integrations/switch.template#turn_on
    */
   turn_on: Action | Action[]
-
-  /**
-   * An ID that uniquely identifies this switch. Set this to an unique value to allow customization trough the UI.
-   * https://www.home-assistant.io/integrations/switch.template#unique_id
-   */
-  unique_id?: string
 
   /**
    * Defines a template to set the state of the switch. If not defined, the switch will optimistically assume all commands are successful.
