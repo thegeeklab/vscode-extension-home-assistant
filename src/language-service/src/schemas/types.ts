@@ -28,14 +28,13 @@ export interface Data {
 }
 
 /**
- * @TJS-pattern DEPRECATED^
- * @items.pattern DEPRECATED^
+ * A deprecated configuration key. Accepts any value without validation.
  */
 export type Deprecated = any | any[]
 
 /**
- * @TJS-pattern LEGACY_SYNTAX^
- * @items.pattern LEGACY_SYNTAX^
+ * A field that accepts legacy syntax (e.g. the legacy `service`/`platform`
+ * keys). Accepts any value without validation.
  */
 export type LegacySyntax = any | any[]
 
