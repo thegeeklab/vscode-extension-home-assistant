@@ -5,11 +5,8 @@
 
 export interface Schema {
   /**
-   * DEPRECATED.
-   * The entity-button card has been replaced by the button card.
+   * DEPRECATED. The entity-button card has been replaced by the button card.
    * https://www.home-assistant.io/lovelace/button/
-   *
-   * @TJS-pattern DEPRECATED^
    */
   type: "entity-button"
 }
