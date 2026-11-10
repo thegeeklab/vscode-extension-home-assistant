@@ -27,6 +27,12 @@ type GroupAddress = string
  */
 type GroupAddresses = string[] | string
 
+/**
+ * @TJS-pattern ^(\d{1,2}\/\d{1,2}\/(\d{1,4}(-\d{1,4})?|\*)|\d{1,2}\/(\d{1,4}|\*)|\*|\d{1,5}|i-.+)$
+ * @items.pattern ^(\d{1,2}\/\d{1,2}\/(\d{1,4}(-\d{1,4})?|\*)|\d{1,2}\/(\d{1,4}|\*)|\*|\d{1,5}|i-.+)$
+ */
+type GroupAddressesEvent = string[] | string
+
 type ValueType =
   | "1byte_signed"
   | "1byte_unsigned"
@@ -776,10 +782,10 @@ interface Cover {
 
 interface Event {
   /**
-   * KNX group address to fire events.
-   * https://www.home-assistant.io/integrations/knx#state_address
+   * KNX group address to fire events. Patterns with wildcards (*) and ranges (2-4) are supported.
+   * https://www.home-assistant.io/integrations/knx#events
    */
-  address: GroupAddresses
+  address: GroupAddressesEvent
 
   /**
    * A type from the value types. The decoded value will be written to the event data `value` key.
