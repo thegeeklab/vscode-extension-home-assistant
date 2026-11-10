@@ -17,7 +17,7 @@ Smart autocomplete, schema validation and Jinja support for [Home Assistant](htt
 
 ## Usage
 
-Open your Home Assistant configuration folder with VS Code. The extension automatically detects Home Assistant workspaces by their `configuration.yaml` and associates YAML files with the `home-assistant` language, enabling completion, validation, go-to-definition and snippets.
+Open your Home Assistant configuration folder with VS Code. The extension automatically detects Home Assistant workspaces by their `configuration.yaml` and enables completion, validation, go-to-definition and snippets for the YAML files in those workspaces. The association is applied in memory only and never written to your settings, so it stays scoped to the detected workspace.
 
 To enable completion and validation against your live instance, connect the extension to Home Assistant using the **Home Assistant: Manage Authentication** command and provide your instance URL and a long-lived access token. Credentials are stored in VS Code `SecretStorage`.
 

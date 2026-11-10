@@ -54,7 +54,7 @@
           "home-assistant.disableAutomaticFileAssociation": {
             "type": "boolean",
             "default": false,
-            "description": "Disable automatic association of YAML files with the Home Assistant language. When enabled, the extension will not automatically set file associations for YAML files, even in detected Home Assistant workspaces."
+            "description": "Disable automatic association of YAML files with the Home Assistant language. When enabled, the extension will not associate YAML files inside detected Home Assistant workspaces with the Home Assistant language."
           },
           "home-assistant.autoRenderTemplates": {
             "type": "boolean",
@@ -89,10 +89,6 @@
       {
         "id": "home-assistant",
         "configuration": "./syntaxes/yaml-language-configuration.json",
-        "extensions": [
-          ".yml",
-          ".yaml"
-        ],
         "aliases": [
           "Home Assistant",
           "homeassistant",

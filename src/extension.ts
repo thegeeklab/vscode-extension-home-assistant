@@ -40,6 +40,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     console.error("Failed to migrate credentials:", error)
   }
 
+  // Associate YAML files inside detected Home Assistant workspace folders with the
+  // home-assistant language. This is non-persistent (no settings.json is written) and
+  // scoped to the matching folders, so it neither leaks into unrelated projects nor
+  // requires a hard-to-maintain exclusion list.
+  await registerHomeAssistantFileAssociation(context)
+
   const serverModule = path.join(context.extensionPath, "out", "src", "server", "server.js")
 
   const debugOptions = { execArgv: ["--nolazy", "--inspect=6003"] }
@@ -373,54 +379,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     })
   )
 
-  // Check configuration setting to see if automatic file association is disabled
-  const config = vscode.workspace.getConfiguration("home-assistant")
-  const disableAutomaticFileAssociation = config.get<boolean>(
-    "disableAutomaticFileAssociation",
-    false
-  )
-
-  if (disableAutomaticFileAssociation) {
-    console.log(
-      "Automatic file association is disabled by user setting - skipping file associations"
-    )
-  } else if (await isHomeAssistantWorkspace()) {
-    const fileAssociations = vscode.workspace.getConfiguration().get("files.associations") as {
-      [key: string]: string
-    }
-    if (
-      !fileAssociations["*.yaml"] &&
-      Object.values(fileAssociations).indexOf("home-assistant") === -1
-    ) {
-      console.log("Home Assistant workspace detected, setting YAML file associations")
-      // Set general YAML files to home-assistant, but exclude docker-compose and esphome files
-      await vscode.workspace.getConfiguration().update(
-        "files.associations",
-        {
-          "*.yaml": "home-assistant",
-          // Modern Docker Compose filenames (compose.yaml is the preferred format)
-          "compose.yml": "yaml",
-          "compose.yaml": "yaml",
-          "compose.*.yml": "yaml",
-          "compose.*.yaml": "yaml",
-          // Legacy Docker Compose filenames (for backward compatibility)
-          "docker-compose.yml": "yaml",
-          "docker-compose.yaml": "yaml",
-          "docker-compose.*.yml": "yaml",
-          "docker-compose.*.yaml": "yaml",
-          // ESPHome configuration files (for ESPHome extension)
-          "esphome/**/*.yml": "esphome",
-          "esphome/**/*.yaml": "esphome"
-        },
-        false
-      )
-    }
-  } else {
-    console.log(
-      "Configuration.yaml found but this doesn't appear to be a Home Assistant workspace - skipping file associations"
-    )
-  }
-
   // Listen for configuration changes that might affect the connection
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration(async (event) => {
@@ -548,19 +506,109 @@ export async function isHomeAssistantWorkspaceFolder(workspacePath: string): Pro
 }
 
 /**
- * Determines if the current workspace is actually a Home Assistant configuration directory
+ * Returns the workspace folders that are detected as Home Assistant configuration
+ * directories.
  */
-export async function isHomeAssistantWorkspace(): Promise<boolean> {
+export async function getHomeAssistantWorkspaceFolders(): Promise<vscode.WorkspaceFolder[]> {
   const { workspaceFolders } = vscode.workspace
   if (!workspaceFolders || workspaceFolders.length === 0) {
-    return false
+    return []
   }
 
+  const matches: vscode.WorkspaceFolder[] = []
   for (const folder of workspaceFolders) {
     if (await isHomeAssistantWorkspaceFolder(folder.uri.fsPath)) {
-      return true
+      matches.push(folder)
     }
   }
 
-  return false
+  return matches
+}
+
+const YAML_FILE_EXTENSIONS = [".yaml", ".yml"]
+
+/**
+ * Associates YAML files inside detected Home Assistant workspace folders with the
+ * home-assistant language. The association is applied in memory only (nothing is written
+ * to settings.json) and is scoped to the matching folders, so it does not leak into
+ * unrelated projects and needs no exclusion list.
+ */
+async function registerHomeAssistantFileAssociation(
+  context: vscode.ExtensionContext
+): Promise<void> {
+  const config = vscode.workspace.getConfiguration("home-assistant")
+  if (config.get<boolean>("disableAutomaticFileAssociation", false)) {
+    console.log(
+      "Automatic file association is disabled by user setting - skipping file associations"
+    )
+    return
+  }
+
+  let homeAssistantFolders = await getHomeAssistantWorkspaceFolders()
+  if (homeAssistantFolders.length === 0) {
+    console.log("No Home Assistant workspace folder detected - skipping initial file association")
+  } else {
+    console.log(
+      `Home Assistant workspace detected, associating YAML files with the home-assistant language in: ${homeAssistantFolders
+        .map((folder) => folder.uri.fsPath)
+        .join(", ")}`
+    )
+  }
+
+  const associateDocument = async (document: vscode.TextDocument): Promise<void> => {
+    if (!shouldAssociateDocument(document, homeAssistantFolders)) {
+      return
+    }
+
+    try {
+      await vscode.languages.setTextDocumentLanguage(document, "home-assistant")
+    } catch (error) {
+      console.error(`Failed to associate ${document.uri.fsPath} with Home Assistant: ${error}`)
+    }
+  }
+
+  const associateOpenDocuments = async (): Promise<void> => {
+    for (const document of vscode.workspace.textDocuments) {
+      await associateDocument(document)
+    }
+  }
+
+  // Associate documents that are already open when the extension activates.
+  await associateOpenDocuments()
+
+  // Associate documents opened afterwards.
+  context.subscriptions.push(
+    vscode.workspace.onDidOpenTextDocument((document) => {
+      void associateDocument(document)
+    })
+  )
+
+  // Re-detect Home Assistant folders when the workspace layout changes so YAML
+  // files in a newly added folder are associated too.
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeWorkspaceFolders(async () => {
+      homeAssistantFolders = await getHomeAssistantWorkspaceFolders()
+      await associateOpenDocuments()
+    })
+  )
+}
+
+function shouldAssociateDocument(
+  document: vscode.TextDocument,
+  homeAssistantFolders: vscode.WorkspaceFolder[]
+): boolean {
+  if (document.languageId === "home-assistant" || document.uri.scheme !== "file") {
+    return false
+  }
+
+  const filePath = document.uri.fsPath
+  const lowerFilePath = filePath.toLowerCase()
+  if (!YAML_FILE_EXTENSIONS.some((extension) => lowerFilePath.endsWith(extension))) {
+    return false
+  }
+
+  return homeAssistantFolders.some((folder) => {
+    const relative = path.relative(folder.uri.fsPath, filePath)
+    return relative !== "" && !relative.startsWith("..") && !path.isAbsolute(relative)
+  })
 }

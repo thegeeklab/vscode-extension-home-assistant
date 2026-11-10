@@ -1,7 +1,10 @@
 import * as assert from "assert"
 import * as path from "path"
 import * as vscode from "vscode"
-import { isHomeAssistantWorkspaceFolder } from "../../src/extension.js"
+import {
+  getHomeAssistantWorkspaceFolders,
+  isHomeAssistantWorkspaceFolder
+} from "../../src/extension.js"
 
 suite("Home Assistant Workspace Detection Tests", () => {
   let fixturesRoot: string
@@ -30,5 +33,10 @@ suite("Home Assistant Workspace Detection Tests", () => {
       await isHomeAssistantWorkspaceFolder(path.join(fixturesRoot, "non-ha-detection")),
       false
     )
+  })
+
+  test("Detects the open workspace as a Home Assistant workspace", async () => {
+    const folders = await getHomeAssistantWorkspaceFolders()
+    assert.strictEqual(folders.length, 1, "Expected one Home Assistant workspace folder")
   })
 })
