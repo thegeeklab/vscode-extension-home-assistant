@@ -199,18 +199,9 @@ export class HaConnection implements IHaConnection {
     }
   }
 
-  private async createConnection(): Promise<void> {
-    // Enhanced connection debugging
-    console.log("Creating Home Assistant connection...")
-    console.log(
-      `Configuration status: ${this.configurationService.isConfigured ? "Configured" : "Not Configured"}`
-    )
-    console.log(`URL configured: ${this.configurationService.url ? "Yes" : "No"}`)
-    console.log(`Token available: ${this.configurationService.token ? "Yes" : "No"}`)
-    console.log(
-      `Dev mock connection: ${this.configurationService.devMockConnection ? "Yes" : "No"}`
-    )
+  private connectionPromise: Promise<void> | undefined
 
+  private async createConnection(): Promise<void> {
     if (this.configurationService.devMockConnection) {
       await this.tryConnect()
       return
@@ -222,9 +213,36 @@ export class HaConnection implements IHaConnection {
     }
 
     if (this.connection !== undefined) {
-      console.log("Connection already exists, reusing existing connection")
       return
     }
+
+    // Share a single in-flight connection attempt across concurrent callers
+    // (initial diagnostics request entities/areas/devices in parallel), so the
+    // socket is only opened once.
+    if (this.connectionPromise !== undefined) {
+      await this.connectionPromise
+      return
+    }
+
+    this.connectionPromise = this.establishConnection()
+    try {
+      await this.connectionPromise
+    } finally {
+      this.connectionPromise = undefined
+    }
+  }
+
+  private async establishConnection(): Promise<void> {
+    // Enhanced connection debugging
+    console.log("Creating Home Assistant connection...")
+    console.log(
+      `Configuration status: ${this.configurationService.isConfigured ? "Configured" : "Not Configured"}`
+    )
+    console.log(`URL configured: ${this.configurationService.url ? "Yes" : "No"}`)
+    console.log(`Token available: ${this.configurationService.token ? "Yes" : "No"}`)
+    console.log(
+      `Dev mock connection: ${this.configurationService.devMockConnection ? "Yes" : "No"}`
+    )
 
     // Log connection details before creating auth
     console.log(`Creating Home Assistant connection to URL: ${this.configurationService.url}`)
@@ -310,7 +328,8 @@ export class HaConnection implements IHaConnection {
       this.lastSuccessfulConfig = {
         token: this.configurationService.token,
         url: this.configurationService.url,
-        ignoreCertificates: this.configurationService.ignoreCertificates
+        ignoreCertificates: this.configurationService.ignoreCertificates,
+        devMockConnection: this.configurationService.devMockConnection
       }
       console.log("Stored successful connection configuration for future reference")
 
@@ -526,7 +545,8 @@ export class HaConnection implements IHaConnection {
       this.lastSuccessfulConfig = {
         token: this.configurationService.token,
         url: this.configurationService.url,
-        ignoreCertificates: this.configurationService.ignoreCertificates
+        ignoreCertificates: this.configurationService.ignoreCertificates,
+        devMockConnection: this.configurationService.devMockConnection
       }
 
       // Notify about successful reconnection

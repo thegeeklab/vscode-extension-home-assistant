@@ -399,12 +399,10 @@ export class HomeAssistantLanguageService {
       ])
       if (!entities) {
         // If we can't get entities (e.g., not connected), don't validate
-        console.log("Entity validation skipped: No entities available from Home Assistant")
         return diagnostics
       }
 
       const entityIds = Object.keys(entities)
-      console.log(`Entity validation: Found ${entityIds.length} entities from Home Assistant`)
 
       const getEntityDiagnosticDetails = (entityId: string) => {
         const registryEntry = entityRegistry[entityId]
@@ -591,12 +589,10 @@ export class HomeAssistantLanguageService {
       const areaCompletions = await this.haConnection.getAreaCompletions()
       if (!areaCompletions || areaCompletions.length === 0) {
         // If we can't get areas (e.g., not connected), don't validate
-        console.log("Area validation skipped: No areas available from Home Assistant")
         return diagnostics
       }
 
       const areaIds = areaCompletions.map((area) => area.label as string)
-      console.log(`Area validation: Found ${areaIds.length} areas from Home Assistant`)
 
       const text = document.getText()
       const lines = text.split("\n")
@@ -801,12 +797,10 @@ export class HomeAssistantLanguageService {
       const deviceCompletions = await this.haConnection.getDeviceCompletions()
       if (!deviceCompletions || deviceCompletions.length === 0) {
         // If we can't get devices (e.g., not connected), don't validate
-        console.log("Device validation skipped: No devices available from Home Assistant")
         return diagnostics
       }
 
       const deviceIds = deviceCompletions.map((device) => device.label as string)
-      console.log(`Device validation: Found ${deviceIds.length} devices from Home Assistant`)
 
       const text = document.getText()
       const lines = text.split("\n")
@@ -1011,12 +1005,10 @@ export class HomeAssistantLanguageService {
       const floorCompletions = await this.haConnection.getFloorCompletions()
       if (!floorCompletions || floorCompletions.length === 0) {
         // If we can't get floors (e.g., not connected), don't validate
-        console.log("Floor validation skipped: No floors available from Home Assistant")
         return diagnostics
       }
 
       const floorIds = floorCompletions.map((floor) => floor.label as string)
-      console.log(`Floor validation: Found ${floorIds.length} floors from Home Assistant`)
 
       const text = document.getText()
       const lines = text.split("\n")
@@ -1224,11 +1216,8 @@ export class HomeAssistantLanguageService {
 
       if (!availableSecrets || availableSecrets.length === 0) {
         // If we can't get secrets (e.g., no secrets.yaml file), don't validate
-        console.log("Secrets validation skipped: No secrets available from secrets.yaml")
         return diagnostics
       }
-
-      console.log(`Secrets validation: Found ${availableSecrets.length} secrets from secrets.yaml`)
 
       const text = document.getText()
       const lines = text.split("\n")
@@ -1339,12 +1328,10 @@ export class HomeAssistantLanguageService {
       const labelCompletions = await this.haConnection.getLabelCompletions()
       if (!labelCompletions || labelCompletions.length === 0) {
         // If we can't get labels (e.g., not connected), don't validate
-        console.log("Label validation skipped: No labels available from Home Assistant")
         return diagnostics
       }
 
       const labelIds = labelCompletions.map((label) => label.label as string)
-      console.log(`Label validation: Found ${labelIds.length} labels from Home Assistant`)
 
       const text = document.getText()
       const lines = text.split("\n")
@@ -1568,7 +1555,6 @@ export class HomeAssistantLanguageService {
       const services = await this.haConnection.getHassServices()
       if (!services) {
         // If we can't get actions (e.g., not connected), don't validate
-        console.log("Action validation skipped: No actions available from Home Assistant")
         return diagnostics
       }
 
@@ -1579,8 +1565,6 @@ export class HomeAssistantLanguageService {
           actionIds.add(`${domain}.${serviceName}`)
         }
       }
-
-      console.log(`Action validation: Found ${actionIds.size} actions from Home Assistant`)
 
       const text = document.getText()
       const lines = text.split("\n")
