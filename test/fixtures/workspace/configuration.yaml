@@ -6,18 +6,18 @@ homeassistant:
   elevation: 0
   unit_system: metric
   time_zone: UTC
-  # Schema-validation fixtures only (not area/device/entity registry fixtures).
+  # Fixtures that must be associated with the home-assistant language so the
+  # server handles them (schema validation, goto-definition, completion).
   # Package files keep domain keys at the root and receive the configuration schema.
   packages:
     invalid_automation: !include test-invalid-automation.yaml
     schema_validation: !include test-schema-validation.yaml
     sensor_validation: !include test-sensor-validation.yaml
     script_validation: !include test-script-validation.yaml
-
-# Include our test files
-include:
-  - test-position-tracking.yaml
-  - test-goto-definition.yaml
+    secrets_goto: !include test-secrets-goto.yaml
+    secrets_nested: !include test-secrets-nested.yaml
+    completion: !include test-completion.yaml
+    position_tracking: !include test-position-tracking.yaml
 
 # Basic configuration entities for testing
 light:
