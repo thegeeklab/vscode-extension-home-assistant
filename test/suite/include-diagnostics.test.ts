@@ -31,6 +31,9 @@ suite("Include Diagnostics Filter Tests", () => {
       () => {
         /* mock diagnoseAllFiles */
       },
+      () => {
+        /* mock onFilesDiscovered */
+      },
       { isConfigured: true, autoRenderTemplates: true } as any
     )
 

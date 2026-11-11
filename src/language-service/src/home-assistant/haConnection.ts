@@ -178,12 +178,7 @@ export class HaConnection implements IHaConnection {
     try {
       if (this.configurationService.devMockConnection) {
         console.log("Dev mock connection mode enabled - using static test registries")
-        this.lastSuccessfulConfig = {
-          token: this.configurationService.token,
-          url: this.configurationService.url,
-          ignoreCertificates: this.configurationService.ignoreCertificates,
-          devMockConnection: true
-        }
+        this.lastSuccessfulConfig = this.captureCurrentConfig()
         if (this.onConnectionEstablished) {
           this.onConnectionEstablished({
             name: "Dev Mock HA",
@@ -199,18 +194,9 @@ export class HaConnection implements IHaConnection {
     }
   }
 
-  private async createConnection(): Promise<void> {
-    // Enhanced connection debugging
-    console.log("Creating Home Assistant connection...")
-    console.log(
-      `Configuration status: ${this.configurationService.isConfigured ? "Configured" : "Not Configured"}`
-    )
-    console.log(`URL configured: ${this.configurationService.url ? "Yes" : "No"}`)
-    console.log(`Token available: ${this.configurationService.token ? "Yes" : "No"}`)
-    console.log(
-      `Dev mock connection: ${this.configurationService.devMockConnection ? "Yes" : "No"}`
-    )
+  private connectionPromise: Promise<void> | undefined
 
+  private async createConnection(): Promise<void> {
     if (this.configurationService.devMockConnection) {
       await this.tryConnect()
       return
@@ -222,9 +208,78 @@ export class HaConnection implements IHaConnection {
     }
 
     if (this.connection !== undefined) {
-      console.log("Connection already exists, reusing existing connection")
       return
     }
+
+    // Share a single in-flight connection attempt across concurrent callers
+    // (initial diagnostics request entities/areas/devices in parallel), so the
+    // socket is only opened once.
+    if (this.connectionPromise !== undefined) {
+      await this.connectionPromise
+      return
+    }
+
+    this.connectionPromise = this.establishConnection()
+    try {
+      await this.connectionPromise
+    } finally {
+      this.connectionPromise = undefined
+    }
+  }
+
+  private captureCurrentConfig(): {
+    token?: string
+    url?: string
+    ignoreCertificates?: boolean
+    devMockConnection?: boolean
+  } {
+    return {
+      token: this.configurationService.token,
+      url: this.configurationService.url,
+      ignoreCertificates: this.configurationService.ignoreCertificates,
+      devMockConnection: this.configurationService.devMockConnection
+    }
+  }
+
+  private async notifyConnectionEstablished(): Promise<void> {
+    if (!this.onConnectionEstablished) {
+      return
+    }
+
+    try {
+      // Get instance name if possible
+      let instanceName
+      let version
+      try {
+        const configResponse = await this.callApi("get", "config")
+        if (configResponse && typeof configResponse === "object") {
+          instanceName = configResponse.location_name
+          version = configResponse.version
+        }
+      } catch (error) {
+        console.log("Could not fetch Home Assistant instance name:", error)
+      }
+
+      this.onConnectionEstablished({
+        name: instanceName,
+        version
+      })
+    } catch (cbError) {
+      console.error("Error in connection established callback:", cbError)
+    }
+  }
+
+  private async establishConnection(): Promise<void> {
+    // Enhanced connection debugging
+    console.log("Creating Home Assistant connection...")
+    console.log(
+      `Configuration status: ${this.configurationService.isConfigured ? "Configured" : "Not Configured"}`
+    )
+    console.log(`URL configured: ${this.configurationService.url ? "Yes" : "No"}`)
+    console.log(`Token available: ${this.configurationService.token ? "Yes" : "No"}`)
+    console.log(
+      `Dev mock connection: ${this.configurationService.devMockConnection ? "Yes" : "No"}`
+    )
 
     // Log connection details before creating auth
     console.log(`Creating Home Assistant connection to URL: ${this.configurationService.url}`)
@@ -307,38 +362,11 @@ export class HaConnection implements IHaConnection {
       console.log("Connected to Home Assistant")
 
       // Store successful connection configuration
-      this.lastSuccessfulConfig = {
-        token: this.configurationService.token,
-        url: this.configurationService.url,
-        ignoreCertificates: this.configurationService.ignoreCertificates
-      }
+      this.lastSuccessfulConfig = this.captureCurrentConfig()
       console.log("Stored successful connection configuration for future reference")
 
       // Notify about successful connection
-      if (this.onConnectionEstablished) {
-        try {
-          // Get instance name if possible
-          let instanceName
-          let version
-          try {
-            const configResponse = await this.callApi("get", "config")
-            if (configResponse && typeof configResponse === "object") {
-              instanceName = configResponse.location_name
-              version = configResponse.version
-            }
-          } catch (error) {
-            console.log("Could not fetch Home Assistant instance name:", error)
-          }
-
-          // Trigger connection established callback
-          this.onConnectionEstablished({
-            name: instanceName,
-            version
-          })
-        } catch (cbError) {
-          console.error("Error in connection established callback:", cbError)
-        }
-      }
+      await this.notifyConnectionEstablished()
     } catch (error) {
       console.error("Failed to connect to Home Assistant:", error)
 
@@ -445,7 +473,31 @@ export class HaConnection implements IHaConnection {
     console.error(message)
   }
 
-  public notifyConfigUpdate = async (): Promise<void> => {
+  private notifyConfigUpdateDebounce: NodeJS.Timeout | undefined
+  private notifyConfigUpdateResolvers: Array<() => void> = []
+
+  public notifyConfigUpdate = (): Promise<void> => {
+    return new Promise<void>((resolve) => {
+      this.notifyConfigUpdateResolvers.push(resolve)
+
+      if (this.notifyConfigUpdateDebounce !== undefined) {
+        clearTimeout(this.notifyConfigUpdateDebounce)
+      }
+
+      this.notifyConfigUpdateDebounce = setTimeout(() => {
+        this.notifyConfigUpdateDebounce = undefined
+        const resolvers = this.notifyConfigUpdateResolvers
+        this.notifyConfigUpdateResolvers = []
+        void this.reconnectAfterConfigUpdate().finally(() => {
+          for (const resolve of resolvers) {
+            resolve()
+          }
+        })
+      }, 300)
+    })
+  }
+
+  private reconnectAfterConfigUpdate = async (): Promise<void> => {
     console.log("Configuration update detected, checking if reconnection is needed...")
 
     if (this.configurationService.devMockConnection) {
@@ -499,36 +551,10 @@ export class HaConnection implements IHaConnection {
       console.log("Successfully reconnected to Home Assistant after configuration update")
 
       // Update last successful configuration
-      this.lastSuccessfulConfig = {
-        token: this.configurationService.token,
-        url: this.configurationService.url,
-        ignoreCertificates: this.configurationService.ignoreCertificates
-      }
+      this.lastSuccessfulConfig = this.captureCurrentConfig()
 
       // Notify about successful reconnection
-      if (this.onConnectionEstablished) {
-        try {
-          // Get instance name if possible
-          let instanceName
-          let version
-          try {
-            const configResponse = await this.callApi("get", "config")
-            if (configResponse && typeof configResponse === "object") {
-              instanceName = configResponse.location_name
-              version = configResponse.version
-            }
-          } catch (error) {
-            console.log("Could not fetch Home Assistant instance name after reconnection:", error)
-          }
-
-          this.onConnectionEstablished({
-            name: instanceName,
-            version
-          })
-        } catch (cbError) {
-          console.error("Error in connection established callback after config update:", cbError)
-        }
-      }
+      await this.notifyConnectionEstablished()
     } catch (error) {
       console.error("Failed to reconnect after configuration update:", error)
 

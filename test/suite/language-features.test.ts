@@ -34,7 +34,7 @@ suite("Home Assistant Language Features", () => {
     const content = document.getText()
 
     // Verify configuration has include directives
-    assert.ok(content.includes("include:"), "Configuration contains include section")
+    assert.ok(content.includes("!include"), "Configuration contains include directives")
     assert.ok(
       content.includes("test-position-tracking.yaml"),
       "Configuration includes test-position-tracking.yaml"

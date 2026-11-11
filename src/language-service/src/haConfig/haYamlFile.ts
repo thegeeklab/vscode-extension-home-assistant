@@ -128,7 +128,7 @@ export class HomeAssistantYamlFile {
       }
 
       // Check for script definitions in format: script my_script:
-      if (currentPath.endsWith("/script") || /^configuration\.yaml\/script\s+/.test(currentPath)) {
+      if (currentPath.endsWith("/script") || /\/script\s+/.test(currentPath)) {
         this.collectScripts(node)
         return
       }
@@ -243,7 +243,7 @@ export class HomeAssistantYamlFile {
     const filepath = vscodeUri.URI.file(path.resolve(this.filename)).fsPath
 
     // Check if this is a direct script definition (script another_script:)
-    const directScriptMatch = /^configuration\.yaml\/script\s+(.+)$/.exec(this.currentPath)
+    const directScriptMatch = /\/script\s+(.+)$/.exec(this.currentPath)
     if (directScriptMatch) {
       const [, scriptId] = directScriptMatch
 

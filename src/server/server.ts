@@ -4,9 +4,11 @@ import {
   ProposedFeatures,
   ServerCapabilities,
   TextDocumentSyncKind,
-  Diagnostic
+  Diagnostic,
+  FileChangeType
 } from "vscode-languageserver/node"
 import { TextDocument } from "vscode-languageserver-textdocument"
+import * as fs from "fs/promises"
 import { getLanguageService } from "yaml-language-server"
 import { HaConnection } from "../language-service/src/home-assistant/haConnection.js"
 import { ConfigurationService } from "../language-service/src/configuration.js"
@@ -87,14 +89,42 @@ connection.onInitialize(async (params) => {
     })
   }
 
+  const sendDiscoveredFiles = async () => {
+    try {
+      const results = await Promise.allSettled(
+        haConfigInstance.getAllFiles().map((fileInfo) => fs.realpath(fileInfo.filename))
+      )
+      // An !include may reference a file that does not exist yet; skip rejected entries.
+      const files = results
+        .filter(
+          (result): result is PromiseFulfilledResult<string> => result.status === "fulfilled"
+        )
+        .map((result) => result.value)
+      connection.sendNotification("ha_files_discovered", { files })
+    } catch (e) {
+      console.error(`Failed to send the discovered files to the client: ${e}`)
+    }
+  }
+
   const discoverFilesAndUpdateSchemas = async () => {
     try {
       console.log("Discovering files and updating schemas...")
       await haConfigInstance.discoverFiles()
+
+      // Publish the discovered file list before applying schemas so the client can
+      // associate documents even when schema application fails. Only publish after
+      // discovery succeeds; publishing on a failed discovery would send an empty or
+      // stale list and cause the client to revert files to the "yaml" language.
+      await sendDiscoveredFiles()
+    } catch (e) {
+      console.error(`Unexpected error during file discovery: ${e}`)
+    }
+
+    try {
       await homeAssistantLanguageService.findAndApplySchemas()
       console.log("Files discovered and schemas updated successfully")
     } catch (e) {
-      console.error(`Unexpected error during file discovery / schema configuration: ${e}`)
+      console.error(`Unexpected error during schema configuration: ${e}`)
     }
   }
 
@@ -110,6 +140,9 @@ connection.onInitialize(async (params) => {
         const diagnostics = await homeAssistantLanguageService.getDiagnostics(d)
         sendDiagnostics(d.uri, diagnostics)
       }
+    },
+    () => {
+      void sendDiscoveredFiles()
     },
     configurationService
   )
@@ -172,6 +205,26 @@ connection.onInitialize(async (params) => {
       // This helps when users save multiple files in quick succession
       onDidSaveDebounce = setTimeout(discoverFilesAndUpdateSchemas, 1000)
     }
+  })
+
+  // Refresh the discovered file set when YAML files are created or deleted, so
+  // files added to (or removed from) an !include_dir are picked up without
+  // requiring a save of the root configuration file.
+  let onDidChangeWatchedFilesDebounce: NodeJS.Timeout
+  connection.onDidChangeWatchedFiles((params) => {
+    const isRelevantYamlEvent = params.changes.some((change) => {
+      const isYaml = change.uri.endsWith(".yaml") || change.uri.endsWith(".yml")
+      const isCreateOrDelete =
+        change.type === FileChangeType.Created || change.type === FileChangeType.Deleted
+      return isYaml && isCreateOrDelete
+    })
+
+    if (!isRelevantYamlEvent) {
+      return
+    }
+
+    clearTimeout(onDidChangeWatchedFilesDebounce)
+    onDidChangeWatchedFilesDebounce = setTimeout(discoverFilesAndUpdateSchemas, 1000)
   })
 
   connection.onDocumentSymbol((p) =>
