@@ -16,27 +16,25 @@ export interface FileAccessor {
 }
 
 export class VsCodeFileAccessor implements FileAccessor {
-  private ourRoot: string
   private workspacePath: string
 
   constructor(
-    private workspaceFolder: string,
+    workspaceFolder: string,
     private documents: TextDocuments<TextDocument>
   ) {
-    this.ourRoot = path.resolve()
     // Convert workspace URI to file system path
     this.workspacePath = vscodeUri.URI.parse(workspaceFolder).fsPath
   }
 
   public async getFileContents(uri: string): Promise<string> {
-    const fullUri = vscodeUri.URI.file(path.resolve(uri))
-    const textDocument = this.documents.get(fullUri.toString())
+    const absoluteUri = this.toAbsolutePath(uri)
+    const textDocument = this.documents.get(vscodeUri.URI.file(absoluteUri).toString())
     if (textDocument) {
       // open file in editor, might not be saved yet
       return textDocument.getText()
     }
     try {
-      const result = await fs.readFile(uri, "utf-8")
+      const result = await fs.readFile(absoluteUri, "utf-8")
       return result
     } catch (err: any) {
       if (err.code === "ENOENT") {
@@ -49,7 +47,7 @@ export class VsCodeFileAccessor implements FileAccessor {
 
   public async exists(fileName: string): Promise<boolean> {
     try {
-      await fs.access(fileName)
+      await fs.access(this.toAbsolutePath(fileName))
       return true
     } catch {
       return false
@@ -133,23 +131,23 @@ export class VsCodeFileAccessor implements FileAccessor {
     return filelist
   }
 
-  private dealtWithRelativeFrom = (relativeFrom: string): string => {
-    if (relativeFrom.startsWith("file://")) {
-      relativeFrom = vscodeUri.URI.parse(relativeFrom).fsPath
-    } else {
-      if (!relativeFrom.startsWith(this.ourRoot)) {
-        relativeFrom = path.resolve(relativeFrom)
-      }
-      relativeFrom = vscodeUri.URI.file(relativeFrom).fsPath
+  /**
+   * Resolves a path to an absolute path rooted at the workspace folder. Paths that are
+   * already absolute (or file:// URIs) are left unchanged, so discovery no longer
+   * depends on the language server's process.cwd().
+   */
+  private toAbsolutePath = (input: string): string => {
+    if (input.startsWith("file://")) {
+      return path.normalize(vscodeUri.URI.parse(input).fsPath)
     }
-    return relativeFrom
+    return path.resolve(this.workspacePath, input)
   }
 
   public async getFilesInFolderRelativeFrom(
     subFolder: string,
     relativeFrom: string
   ): Promise<string[]> {
-    relativeFrom = this.dealtWithRelativeFrom(relativeFrom)
+    relativeFrom = this.toAbsolutePath(relativeFrom)
 
     const dirOfFile = path.dirname(relativeFrom)
     subFolder = path.join(dirOfFile, subFolder)
@@ -165,7 +163,7 @@ export class VsCodeFileAccessor implements FileAccessor {
   }
 
   public getRelativePath = (relativeFrom: string, filename: string): string => {
-    relativeFrom = this.dealtWithRelativeFrom(relativeFrom)
+    relativeFrom = this.toAbsolutePath(relativeFrom)
 
     const dirOfFile = path.dirname(relativeFrom)
     const joinedPath = path.join(dirOfFile, filename)
@@ -177,14 +175,6 @@ export class VsCodeFileAccessor implements FileAccessor {
     vscodeUri.URI.file(this.getRelativePath(relativeFrom, filename)).toString()
 
   public fromUriToLocalPath = (uri: string): string => {
-    const workspaceFolderUri = vscodeUri.URI.parse(this.workspaceFolder)
-    const fileUri = vscodeUri.URI.parse(uri)
-    let local = fileUri.fsPath.replace(workspaceFolderUri.fsPath, "")
-    if (local[0] === "/" || local[0] === "\\") {
-      local = local.substring(1)
-    }
-    // let joined = path.join(workspaceFolderUri.fsPath, uri);
-    // let normalized = path.normalize(joined);
-    return local
+    return path.normalize(vscodeUri.URI.parse(uri).fsPath)
   }
 }

@@ -1,4 +1,5 @@
 import * as path from "path"
+import { realpath } from "node:fs/promises"
 import * as vscode from "vscode"
 import { LanguageClientOptions } from "vscode-languageclient"
 import { LanguageClient, ServerOptions, TransportKind } from "vscode-languageclient/node"
@@ -39,12 +40,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   } catch (error) {
     console.error("Failed to migrate credentials:", error)
   }
-
-  // Associate YAML files inside detected Home Assistant workspace folders with the
-  // home-assistant language. This is non-persistent (no settings.json is written) and
-  // scoped to the matching folders, so it neither leaks into unrelated projects nor
-  // requires a hard-to-maintain exclusion list.
-  await registerHomeAssistantFileAssociation(context)
 
   const serverModule = path.join(context.extensionPath, "out", "src", "server", "server.js")
 
@@ -379,6 +374,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     })
   )
 
+  // Associate the YAML files the server reports as part of the Home Assistant
+  // configuration with the home-assistant language.
+  registerHomeAssistantFileAssociation(context, client)
+
   // Listen for configuration changes that might affect the connection
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration(async (event) => {
@@ -426,116 +425,19 @@ export class CommandMappings {
   ) {}
 }
 
-/**
- * Determines if a single folder is a Home Assistant configuration directory
- * by checking for Home Assistant-specific indicators beyond just configuration.yaml
- */
-export async function isHomeAssistantWorkspaceFolder(workspacePath: string): Promise<boolean> {
-  try {
-    // Check for configuration.yaml first
-    const configPath = path.join(workspacePath, "configuration.yaml")
-    const configExists = await vscode.workspace.fs.stat(vscode.Uri.file(configPath)).then(
-      () => true,
-      () => false
-    )
-
-    if (!configExists) {
-      return false
-    }
-
-    // Look for .storage folder next to configuration.yaml
-    const storagePath = path.join(workspacePath, ".storage")
-    const storageExists = await vscode.workspace.fs.stat(vscode.Uri.file(storagePath)).then(
-      () => true,
-      () => false
-    )
-
-    if (storageExists) {
-      console.log(`Home Assistant workspace detected: found .storage folder at ${storagePath}`)
-      return true
-    }
-
-    // Additional checks for other Home Assistant-specific indicators
-    const haIndicators = [
-      "home-assistant_v2.db", // Home Assistant database
-      "home-assistant.log", // Log file
-      ".HA_VERSION", // Version file
-      "automations.yaml", // Common HA file
-      "scripts.yaml", // Common HA file
-      "scenes.yaml", // Common HA file
-      "ui-lovelace.yaml" // Dashboard configuration
-    ]
-
-    for (const indicator of haIndicators) {
-      const indicatorPath = path.join(workspacePath, indicator)
-      const indicatorExists = await vscode.workspace.fs.stat(vscode.Uri.file(indicatorPath)).then(
-        () => true,
-        () => false
-      )
-
-      if (indicatorExists) {
-        console.log(`Home Assistant workspace detected: found ${indicator} at ${indicatorPath}`)
-        return true
-      }
-    }
-
-    // Check for configuration.yaml content - look for 'homeassistant:' key
-    try {
-      const configContent = await vscode.workspace.fs.readFile(vscode.Uri.file(configPath))
-      const configText = Buffer.from(configContent).toString("utf8")
-
-      // Simple regex to check for homeassistant key (with various spacing/formatting)
-      if (/^\s*homeassistant\s*:/m.test(configText)) {
-        console.log(
-          'Home Assistant workspace detected: found "homeassistant:" key in configuration.yaml'
-        )
-        return true
-      }
-    } catch (error) {
-      console.log(`Could not read configuration.yaml content: ${error}`)
-    }
-
-    console.log(
-      `Found configuration.yaml at ${configPath} but no Home Assistant indicators - skipping file associations`
-    )
-    return false
-  } catch (error) {
-    console.log(`Error checking workspace ${workspacePath}: ${error}`)
-    return false
-  }
-}
-
-/**
- * Returns the workspace folders that are detected as Home Assistant configuration
- * directories.
- */
-export async function getHomeAssistantWorkspaceFolders(): Promise<vscode.WorkspaceFolder[]> {
-  const { workspaceFolders } = vscode.workspace
-  if (!workspaceFolders || workspaceFolders.length === 0) {
-    return []
-  }
-
-  const matches: vscode.WorkspaceFolder[] = []
-  for (const folder of workspaceFolders) {
-    if (await isHomeAssistantWorkspaceFolder(folder.uri.fsPath)) {
-      matches.push(folder)
-    }
-  }
-
-  return matches
-}
-
 const YAML_FILE_EXTENSIONS = [".yaml", ".yml"]
 
 /**
- * Associates YAML files inside detected Home Assistant workspace folders with the
- * home-assistant language. The association is applied in memory only (nothing is written
- * to settings.json) and is scoped to the matching folders, so it does not leak into
- * unrelated projects and needs no exclusion list.
+ * Associates the YAML files the server reports as part of the Home Assistant
+ * configuration with the home-assistant language. The server determines the exact
+ * file set by walking the !include graph from configuration.yaml, so unrelated
+ * repo-level YAML (e.g. CI config) is never associated. The association is applied
+ * in memory only and never written to settings.json.
  */
-async function registerHomeAssistantFileAssociation(
-  context: vscode.ExtensionContext
-): Promise<void> {
+function registerHomeAssistantFileAssociation(
+  context: vscode.ExtensionContext,
+  client: LanguageClient
+): void {
   const config = vscode.workspace.getConfiguration("home-assistant")
   if (config.get<boolean>("disableAutomaticFileAssociation", false)) {
     console.log(
@@ -544,71 +446,80 @@ async function registerHomeAssistantFileAssociation(
     return
   }
 
-  let homeAssistantFolders = await getHomeAssistantWorkspaceFolders()
-  if (homeAssistantFolders.length === 0) {
-    console.log("No Home Assistant workspace folder detected - skipping initial file association")
-  } else {
-    console.log(
-      `Home Assistant workspace detected, associating YAML files with the home-assistant language in: ${homeAssistantFolders
-        .map((folder) => folder.uri.fsPath)
-        .join(", ")}`
-    )
-  }
+  const homeAssistantFiles = new Set<string>()
+  let filesDiscovered = false
 
-  const associateDocument = async (document: vscode.TextDocument): Promise<void> => {
-    if (!shouldAssociateDocument(document, homeAssistantFolders)) {
+  const syncDocument = async (document: vscode.TextDocument): Promise<void> => {
+    if (document.uri.scheme !== "file") {
+      return
+    }
+
+    const filePath = document.uri.fsPath
+    const lowerFilePath = filePath.toLowerCase()
+    if (!YAML_FILE_EXTENSIONS.some((extension) => lowerFilePath.endsWith(extension))) {
+      return
+    }
+
+    const targetLanguage = (await isHomeAssistantFile(filePath, homeAssistantFiles))
+      ? "home-assistant"
+      : "yaml"
+
+    if (document.languageId === targetLanguage) {
+      return
+    }
+
+    // Do not revert a file away from home-assistant before the server has reported the
+    // discovered file set; an empty set would otherwise revert every YAML file.
+    if (targetLanguage === "yaml" && !filesDiscovered) {
       return
     }
 
     try {
-      await vscode.languages.setTextDocumentLanguage(document, "home-assistant")
+      await vscode.languages.setTextDocumentLanguage(document, targetLanguage)
     } catch (error) {
-      console.error(`Failed to associate ${document.uri.fsPath} with Home Assistant: ${error}`)
+      console.error(`Failed to set language for ${filePath}: ${error}`)
     }
   }
 
-  const associateOpenDocuments = async (): Promise<void> => {
+  const syncOpenDocuments = async (): Promise<void> => {
     for (const document of vscode.workspace.textDocuments) {
-      await associateDocument(document)
+      await syncDocument(document)
     }
   }
 
-  // Associate documents that are already open when the extension activates.
-  await associateOpenDocuments()
-
-  // Associate documents opened afterwards.
+  // Sync documents opened afterwards (associating config files and reverting any
+  // YAML file that is not part of the configuration, e.g. from a stale association).
   context.subscriptions.push(
     vscode.workspace.onDidOpenTextDocument((document) => {
-      void associateDocument(document)
+      void syncDocument(document)
     })
   )
 
-  // Re-detect Home Assistant folders when the workspace layout changes so YAML
-  // files in a newly added folder are associated too.
+  // The server publishes the discovered Home Assistant files on initial discovery and
+  // whenever the include graph changes. Sync open documents each time.
   context.subscriptions.push(
-    vscode.workspace.onDidChangeWorkspaceFolders(async () => {
-      homeAssistantFolders = await getHomeAssistantWorkspaceFolders()
-      await associateOpenDocuments()
+    client.onNotification("ha_files_discovered", (data: { files?: string[] }) => {
+      homeAssistantFiles.clear()
+      for (const file of data.files ?? []) {
+        homeAssistantFiles.add(file)
+      }
+      filesDiscovered = true
+      void syncOpenDocuments()
     })
   )
 }
 
-function shouldAssociateDocument(
-  document: vscode.TextDocument,
-  homeAssistantFolders: vscode.WorkspaceFolder[]
-): boolean {
-  if (document.languageId === "home-assistant" || document.uri.scheme !== "file") {
-    return false
+async function isHomeAssistantFile(
+  filePath: string,
+  homeAssistantFiles: Set<string>
+): Promise<boolean> {
+  if (homeAssistantFiles.has(filePath)) {
+    return true
   }
 
-  const filePath = document.uri.fsPath
-  const lowerFilePath = filePath.toLowerCase()
-  if (!YAML_FILE_EXTENSIONS.some((extension) => lowerFilePath.endsWith(extension))) {
+  try {
+    return homeAssistantFiles.has(await realpath(filePath))
+  } catch {
     return false
   }
-
-  return homeAssistantFolders.some((folder) => {
-    const relative = path.relative(folder.uri.fsPath, filePath)
-    return relative !== "" && !relative.startsWith("..") && !path.isAbsolute(relative)
-  })
 }

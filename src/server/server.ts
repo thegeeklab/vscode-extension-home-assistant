@@ -7,6 +7,7 @@ import {
   Diagnostic
 } from "vscode-languageserver/node"
 import { TextDocument } from "vscode-languageserver-textdocument"
+import * as fs from "fs/promises"
 import { getLanguageService } from "yaml-language-server"
 import { HaConnection } from "../language-service/src/home-assistant/haConnection.js"
 import { ConfigurationService } from "../language-service/src/configuration.js"
@@ -87,14 +88,40 @@ connection.onInitialize(async (params) => {
     })
   }
 
+  const sendDiscoveredFiles = async () => {
+    try {
+      const results = await Promise.allSettled(
+        haConfigInstance.getAllFiles().map((fileInfo) => fs.realpath(fileInfo.filename))
+      )
+      // An !include may reference a file that does not exist yet; skip rejected entries.
+      const files = results
+        .filter(
+          (result): result is PromiseFulfilledResult<string> => result.status === "fulfilled"
+        )
+        .map((result) => result.value)
+      connection.sendNotification("ha_files_discovered", { files })
+    } catch (e) {
+      console.error(`Failed to send the discovered files to the client: ${e}`)
+    }
+  }
+
   const discoverFilesAndUpdateSchemas = async () => {
     try {
       console.log("Discovering files and updating schemas...")
       await haConfigInstance.discoverFiles()
+    } catch (e) {
+      console.error(`Unexpected error during file discovery: ${e}`)
+    }
+
+    // Publish the discovered file list before applying schemas so the client can
+    // associate documents even when schema application fails.
+    await sendDiscoveredFiles()
+
+    try {
       await homeAssistantLanguageService.findAndApplySchemas()
       console.log("Files discovered and schemas updated successfully")
     } catch (e) {
-      console.error(`Unexpected error during file discovery / schema configuration: ${e}`)
+      console.error(`Unexpected error during schema configuration: ${e}`)
     }
   }
 
