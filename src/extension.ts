@@ -59,8 +59,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   context.subscriptions.push(fileWatcher)
 
   // Pre-fetch credentials before starting the client. The language client evaluates
-  // initializationOptions synchronously (an async function would be passed unawaited
-  // as a Promise and serialized to {}), so the token and URL must be resolved up front.
+  // initializationOptions synchronously (an async function would be passed without
+  // being awaited and serialized to {}), so the token and URL must be resolved up front.
   let initialToken = ""
   let initialUrl = ""
   try {
