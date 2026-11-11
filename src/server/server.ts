@@ -110,13 +110,15 @@ connection.onInitialize(async (params) => {
     try {
       console.log("Discovering files and updating schemas...")
       await haConfigInstance.discoverFiles()
+
+      // Publish the discovered file list before applying schemas so the client can
+      // associate documents even when schema application fails. Only publish after
+      // discovery succeeds; publishing on a failed discovery would send an empty or
+      // stale list and cause the client to revert files to the "yaml" language.
+      await sendDiscoveredFiles()
     } catch (e) {
       console.error(`Unexpected error during file discovery: ${e}`)
     }
-
-    // Publish the discovered file list before applying schemas so the client can
-    // associate documents even when schema application fails.
-    await sendDiscoveredFiles()
 
     try {
       await homeAssistantLanguageService.findAndApplySchemas()

@@ -1,5 +1,5 @@
 import * as path from "path"
-import { realpath } from "node:fs/promises"
+import * as fs from "fs/promises"
 import * as vscode from "vscode"
 import { LanguageClientOptions } from "vscode-languageclient"
 import { LanguageClient, ServerOptions, TransportKind } from "vscode-languageclient/node"
@@ -64,8 +64,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   let initialToken = ""
   let initialUrl = ""
   try {
-    initialToken = (await AuthManager.getToken(context)) || ""
-    initialUrl = (await AuthManager.getUrl(context)) || ""
+    const [token, url] = await Promise.all([
+      AuthManager.getToken(context),
+      AuthManager.getUrl(context)
+    ])
+    initialToken = token || ""
+    initialUrl = url || ""
   } catch (error) {
     console.error("Failed to pre-fetch Home Assistant credentials:", error)
   }
@@ -505,7 +509,7 @@ async function isHomeAssistantFile(
   }
 
   try {
-    return homeAssistantFiles.has(await realpath(filePath))
+    return homeAssistantFiles.has(await fs.realpath(filePath))
   } catch {
     return false
   }

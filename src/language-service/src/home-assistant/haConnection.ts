@@ -178,12 +178,7 @@ export class HaConnection implements IHaConnection {
     try {
       if (this.configurationService.devMockConnection) {
         console.log("Dev mock connection mode enabled - using static test registries")
-        this.lastSuccessfulConfig = {
-          token: this.configurationService.token,
-          url: this.configurationService.url,
-          ignoreCertificates: this.configurationService.ignoreCertificates,
-          devMockConnection: true
-        }
+        this.lastSuccessfulConfig = this.captureCurrentConfig()
         if (this.onConnectionEstablished) {
           this.onConnectionEstablished({
             name: "Dev Mock HA",
@@ -229,6 +224,48 @@ export class HaConnection implements IHaConnection {
       await this.connectionPromise
     } finally {
       this.connectionPromise = undefined
+    }
+  }
+
+  private captureCurrentConfig(): {
+    token?: string
+    url?: string
+    ignoreCertificates?: boolean
+    devMockConnection?: boolean
+  } {
+    return {
+      token: this.configurationService.token,
+      url: this.configurationService.url,
+      ignoreCertificates: this.configurationService.ignoreCertificates,
+      devMockConnection: this.configurationService.devMockConnection
+    }
+  }
+
+  private async notifyConnectionEstablished(): Promise<void> {
+    if (!this.onConnectionEstablished) {
+      return
+    }
+
+    try {
+      // Get instance name if possible
+      let instanceName
+      let version
+      try {
+        const configResponse = await this.callApi("get", "config")
+        if (configResponse && typeof configResponse === "object") {
+          instanceName = configResponse.location_name
+          version = configResponse.version
+        }
+      } catch (error) {
+        console.log("Could not fetch Home Assistant instance name:", error)
+      }
+
+      this.onConnectionEstablished({
+        name: instanceName,
+        version
+      })
+    } catch (cbError) {
+      console.error("Error in connection established callback:", cbError)
     }
   }
 
@@ -325,39 +362,11 @@ export class HaConnection implements IHaConnection {
       console.log("Connected to Home Assistant")
 
       // Store successful connection configuration
-      this.lastSuccessfulConfig = {
-        token: this.configurationService.token,
-        url: this.configurationService.url,
-        ignoreCertificates: this.configurationService.ignoreCertificates,
-        devMockConnection: this.configurationService.devMockConnection
-      }
+      this.lastSuccessfulConfig = this.captureCurrentConfig()
       console.log("Stored successful connection configuration for future reference")
 
       // Notify about successful connection
-      if (this.onConnectionEstablished) {
-        try {
-          // Get instance name if possible
-          let instanceName
-          let version
-          try {
-            const configResponse = await this.callApi("get", "config")
-            if (configResponse && typeof configResponse === "object") {
-              instanceName = configResponse.location_name
-              version = configResponse.version
-            }
-          } catch (error) {
-            console.log("Could not fetch Home Assistant instance name:", error)
-          }
-
-          // Trigger connection established callback
-          this.onConnectionEstablished({
-            name: instanceName,
-            version
-          })
-        } catch (cbError) {
-          console.error("Error in connection established callback:", cbError)
-        }
-      }
+      await this.notifyConnectionEstablished()
     } catch (error) {
       console.error("Failed to connect to Home Assistant:", error)
 
@@ -542,37 +551,10 @@ export class HaConnection implements IHaConnection {
       console.log("Successfully reconnected to Home Assistant after configuration update")
 
       // Update last successful configuration
-      this.lastSuccessfulConfig = {
-        token: this.configurationService.token,
-        url: this.configurationService.url,
-        ignoreCertificates: this.configurationService.ignoreCertificates,
-        devMockConnection: this.configurationService.devMockConnection
-      }
+      this.lastSuccessfulConfig = this.captureCurrentConfig()
 
       // Notify about successful reconnection
-      if (this.onConnectionEstablished) {
-        try {
-          // Get instance name if possible
-          let instanceName
-          let version
-          try {
-            const configResponse = await this.callApi("get", "config")
-            if (configResponse && typeof configResponse === "object") {
-              instanceName = configResponse.location_name
-              version = configResponse.version
-            }
-          } catch (error) {
-            console.log("Could not fetch Home Assistant instance name after reconnection:", error)
-          }
-
-          this.onConnectionEstablished({
-            name: instanceName,
-            version
-          })
-        } catch (cbError) {
-          console.error("Error in connection established callback after config update:", cbError)
-        }
-      }
+      await this.notifyConnectionEstablished()
     } catch (error) {
       console.error("Failed to reconnect after configuration update:", error)
 
