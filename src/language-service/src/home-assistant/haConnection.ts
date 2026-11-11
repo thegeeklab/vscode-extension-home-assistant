@@ -445,7 +445,31 @@ export class HaConnection implements IHaConnection {
     console.error(message)
   }
 
-  public notifyConfigUpdate = async (): Promise<void> => {
+  private notifyConfigUpdateDebounce: NodeJS.Timeout | undefined
+  private notifyConfigUpdateResolvers: Array<() => void> = []
+
+  public notifyConfigUpdate = (): Promise<void> => {
+    return new Promise<void>((resolve) => {
+      this.notifyConfigUpdateResolvers.push(resolve)
+
+      if (this.notifyConfigUpdateDebounce !== undefined) {
+        clearTimeout(this.notifyConfigUpdateDebounce)
+      }
+
+      this.notifyConfigUpdateDebounce = setTimeout(() => {
+        this.notifyConfigUpdateDebounce = undefined
+        const resolvers = this.notifyConfigUpdateResolvers
+        this.notifyConfigUpdateResolvers = []
+        void this.reconnectAfterConfigUpdate().finally(() => {
+          for (const resolve of resolvers) {
+            resolve()
+          }
+        })
+      }, 300)
+    })
+  }
+
+  private reconnectAfterConfigUpdate = async (): Promise<void> => {
     console.log("Configuration update detected, checking if reconnection is needed...")
 
     if (this.configurationService.devMockConnection) {

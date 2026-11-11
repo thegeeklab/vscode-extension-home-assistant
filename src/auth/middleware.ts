@@ -145,18 +145,6 @@ export class AuthMiddleware {
       // Send notification
       await connection.sendNotification(DidChangeConfigurationNotification.type, params)
       AuthMiddleware.log("Initial configuration with token and URL sent")
-
-      // Wait a bit and send again to ensure it's received after server is fully initialized
-      setTimeout(async () => {
-        try {
-          AuthMiddleware.log("Sending follow-up configuration to ensure token and URL are set")
-          settings["home-assistant"].configTimestamp = Date.now()
-          await connection.sendNotification(DidChangeConfigurationNotification.type, { settings })
-          AuthMiddleware.log("Follow-up configuration with token and URL sent")
-        } catch (followupError) {
-          AuthMiddleware.log(`Error sending follow-up configuration: ${followupError.message}`)
-        }
-      }, 2000)
     } catch (error) {
       AuthMiddleware.log(`Error sending initial configuration: ${error.message}`)
     }

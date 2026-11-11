@@ -4,7 +4,8 @@ import {
   ProposedFeatures,
   ServerCapabilities,
   TextDocumentSyncKind,
-  Diagnostic
+  Diagnostic,
+  FileChangeType
 } from "vscode-languageserver/node"
 import { TextDocument } from "vscode-languageserver-textdocument"
 import * as fs from "fs/promises"
@@ -138,6 +139,9 @@ connection.onInitialize(async (params) => {
         sendDiagnostics(d.uri, diagnostics)
       }
     },
+    () => {
+      void sendDiscoveredFiles()
+    },
     configurationService
   )
 
@@ -199,6 +203,26 @@ connection.onInitialize(async (params) => {
       // This helps when users save multiple files in quick succession
       onDidSaveDebounce = setTimeout(discoverFilesAndUpdateSchemas, 1000)
     }
+  })
+
+  // Refresh the discovered file set when YAML files are created or deleted, so
+  // files added to (or removed from) an !include_dir are picked up without
+  // requiring a save of the root configuration file.
+  let onDidChangeWatchedFilesDebounce: NodeJS.Timeout
+  connection.onDidChangeWatchedFiles((params) => {
+    const isRelevantYamlEvent = params.changes.some((change) => {
+      const isYaml = change.uri.endsWith(".yaml") || change.uri.endsWith(".yml")
+      const isCreateOrDelete =
+        change.type === FileChangeType.Created || change.type === FileChangeType.Deleted
+      return isYaml && isCreateOrDelete
+    })
+
+    if (!isRelevantYamlEvent) {
+      return
+    }
+
+    clearTimeout(onDidChangeWatchedFilesDebounce)
+    onDidChangeWatchedFilesDebounce = setTimeout(discoverFilesAndUpdateSchemas, 1000)
   })
 
   connection.onDocumentSymbol((p) =>

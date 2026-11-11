@@ -194,6 +194,9 @@ export async function createMockLanguageService(
     () => {
       /* mock diagnoseAllFiles */
     },
+    () => {
+      /* mock onFilesDiscovered */
+    },
     { isConfigured: true, autoRenderTemplates: true } as any
   )
 }

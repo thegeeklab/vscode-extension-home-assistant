@@ -58,35 +58,39 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const fileWatcher = vscode.workspace.createFileSystemWatcher("**/*.?(e)y?(a)ml")
   context.subscriptions.push(fileWatcher)
 
+  // Pre-fetch credentials before starting the client. The language client evaluates
+  // initializationOptions synchronously (an async function would be passed unawaited
+  // as a Promise and serialized to {}), so the token and URL must be resolved up front.
+  let initialToken = ""
+  let initialUrl = ""
+  try {
+    initialToken = (await AuthManager.getToken(context)) || ""
+    initialUrl = (await AuthManager.getUrl(context)) || ""
+  } catch (error) {
+    console.error("Failed to pre-fetch Home Assistant credentials:", error)
+  }
+
   const clientOptions: LanguageClientOptions = {
     documentSelector,
     synchronize: {
       configurationSection: "home-assistant",
       fileEvents: fileWatcher
     },
-    initializationOptions: async () => {
-      // Pass token and URL directly in initialization options
-      try {
-        const token = await AuthManager.getToken(context)
-        const url = await AuthManager.getUrl(context)
-        const config = vscode.workspace.getConfiguration("home-assistant")
+    initializationOptions: () => {
+      const config = vscode.workspace.getConfiguration("home-assistant")
 
-        console.log("Setting up initialization options for Home Assistant language server")
-        console.log(`Token available: ${token ? "Yes" : "No"}`)
-        console.log(`Home Assistant instance URL available: ${url ? "Yes" : "No"}`)
+      console.log("Setting up initialization options for Home Assistant language server")
+      console.log(`Token available: ${initialToken ? "Yes" : "No"}`)
+      console.log(`Home Assistant instance URL available: ${initialUrl ? "Yes" : "No"}`)
 
-        // Use SecretStorage values first, then fallback to settings
-        return {
-          "home-assistant": {
-            longLivedAccessToken: token || "",
-            hostUrl: url || config.get<string>("hostUrl") || "",
-            ignoreCertificates: !!config.get<boolean>("ignoreCertificates"),
-            devMockConnection: !!config.get<boolean>("devMockConnection")
-          }
+      // Use SecretStorage values first, then fallback to settings
+      return {
+        "home-assistant": {
+          longLivedAccessToken: initialToken,
+          hostUrl: initialUrl || config.get<string>("hostUrl") || "",
+          ignoreCertificates: !!config.get<boolean>("ignoreCertificates"),
+          devMockConnection: !!config.get<boolean>("devMockConnection")
         }
-      } catch (error) {
-        console.error("Failed to set initialization options:", error)
-        return {}
       }
     }
   }
@@ -103,6 +107,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     wordPattern: /("(?:[^\\"]*(?:\\.)?)*"?)|[^\s{}[\],:]+/
   })
 
+  // Register the file association handler before starting the client. The server
+  // emits "ha_files_discovered" shortly after initialize, and registering the
+  // handler after client.start() (plus auth/config setup) would miss that
+  // notification entirely.
+  registerHomeAssistantFileAssociation(context, client)
+
   try {
     // Start the client
     await client.start()
@@ -114,25 +124,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       const connection = client._connection || client
       await AuthMiddleware.install(context, connection)
       console.log("Auth middleware successfully installed")
-
-      // Force an initial configuration refresh to ensure token and URL are set
-      const config = vscode.workspace.getConfiguration("home-assistant")
-
-      // Get the token and URL directly and explicitly trigger a configuration update
-      const token = await AuthManager.getToken(context)
-      const url = await AuthManager.getUrl(context) // Also check URL
-
-      if (token && url) {
-        // Ensure both token and URL are present
-        console.log(
-          "Token and Home Assistant instance URL found, explicitly sending configuration update"
-        )
-        // Force update some setting to trigger a configuration refresh
-        await config.update("triggerConfigRefresh", Date.now(), vscode.ConfigurationTarget.Global)
-
-        // Check the status bar connection
-        statusBar.checkConnectionStatus()
-      }
     } catch (error) {
       console.error("Error setting up auth middleware:", error)
     }
@@ -373,10 +364,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       statusBar.checkConnectionStatus()
     })
   )
-
-  // Associate the YAML files the server reports as part of the Home Assistant
-  // configuration with the home-assistant language.
-  registerHomeAssistantFileAssociation(context, client)
 
   // Listen for configuration changes that might affect the connection
   context.subscriptions.push(

@@ -71,6 +71,7 @@ export class HomeAssistantLanguageService {
     private schemaServiceForIncludes: SchemaServiceForIncludes,
     private sendDiagnostics: (fileUri: string, diagnostics: Diagnostic[]) => void,
     private diagnoseAllFiles: () => void,
+    private onFilesDiscovered: () => void,
     private configurationService: IConfigurationService
   ) {
     // Patch the yaml-language-server to prevent stack overflow from circular schema references
@@ -199,6 +200,7 @@ export class HomeAssistantLanguageService {
         )
         await this.haConfig.discoverFiles()
         await this.findAndApplySchemas()
+        this.onFilesDiscovered()
       }
 
       const diagnostics = await this.getDiagnostics(document)
