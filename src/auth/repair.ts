@@ -4,17 +4,20 @@ import { AuthManager } from "./manager.js"
 /**
  * Repair the Home Assistant authentication configuration (token and Home Assistant instance URL)
  * This function addresses common migration and storage issues for both token and URL.
+ * Only checks and migrates from global settings, not workspace settings.
  */
 export async function repairAuthConfiguration(context: vscode.ExtensionContext): Promise<void> {
   const config = vscode.workspace.getConfiguration("home-assistant")
 
-  // Get current state for token
-  const settingsToken = config.get<string>("longLivedAccessToken")
-  const secretToken = await AuthManager.getToken(context)
+  // Only consider global settings for migration; workspace/folder settings are
+  // left in place to support per-project credentials.
+  const tokenInspection = config.inspect<string>("longLivedAccessToken")
+  const globalToken = tokenInspection?.globalValue
+  const secretToken = await context.secrets.get(AuthManager.TOKEN_KEY)
 
-  // Get current state for URL
-  const settingsUrl = config.get<string>("hostUrl")
-  const secretUrl = await AuthManager.getUrl(context)
+  const urlInspection = config.inspect<string>("hostUrl")
+  const globalUrl = urlInspection?.globalValue
+  const secretUrl = await context.secrets.get(AuthManager.URL_KEY)
 
   let issuesFixed = false
   const messages: string[] = []
@@ -25,36 +28,38 @@ export async function repairAuthConfiguration(context: vscode.ExtensionContext):
 
   try {
     // --- Token Repair Logic ---
-    if (settingsToken && !secretToken) {
-      await AuthManager.storeToken(context, settingsToken)
+    if (globalToken && !secretToken) {
+      await AuthManager.storeToken(context, globalToken)
       await config.update("longLivedAccessToken", undefined, vscode.ConfigurationTarget.Global)
-      messages.push("Token migrated from settings to secure storage.")
+      messages.push("Token migrated from global settings to secure storage.")
       issuesFixed = true
-    } else if (settingsToken && secretToken) {
+    } else if (globalToken && secretToken) {
       await config.update("longLivedAccessToken", undefined, vscode.ConfigurationTarget.Global)
-      messages.push("Duplicate token in settings.json removed; secure token kept.")
+      messages.push("Duplicate token in global settings.json removed; secure token kept.")
       issuesFixed = true
-    } else if (!settingsToken && !secretToken) {
-      messages.push("No token found. Please set one using 'Manage Home Assistant Authentication'.")
+    } else if (!globalToken && !secretToken) {
+      messages.push(
+        "No token found. Use environment variables or set one using 'Manage Home Assistant Authentication'."
+      )
     } else {
       messages.push("Token is correctly stored securely.")
     }
 
     // --- URL Repair Logic ---
-    if (settingsUrl && !secretUrl) {
-      await AuthManager.storeUrl(context, settingsUrl)
+    if (globalUrl && !secretUrl) {
+      await AuthManager.storeUrl(context, globalUrl)
       await config.update("hostUrl", undefined, vscode.ConfigurationTarget.Global)
-      messages.push("Home Assistant instance URL migrated from settings to secure storage.")
+      messages.push("Home Assistant instance URL migrated from global settings to secure storage.")
       issuesFixed = true
-    } else if (settingsUrl && secretUrl) {
+    } else if (globalUrl && secretUrl) {
       await config.update("hostUrl", undefined, vscode.ConfigurationTarget.Global)
       messages.push(
-        "Duplicate Home Assistant instance URL in settings.json removed; secure URL kept."
+        "Duplicate Home Assistant instance URL in global settings.json removed; secure URL kept."
       )
       issuesFixed = true
-    } else if (!settingsUrl && !secretUrl) {
+    } else if (!globalUrl && !secretUrl) {
       messages.push(
-        "No Home Assistant instance URL found. Please set one using 'Manage Home Assistant Authentication'."
+        "No Home Assistant instance URL found. Use workspace settings or environment variables, or set one using 'Manage Home Assistant Authentication'."
       )
       // Prompt to set URL if not found at all
       const newUrl = await vscode.window.showInputBox({

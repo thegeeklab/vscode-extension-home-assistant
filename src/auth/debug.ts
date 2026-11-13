@@ -9,10 +9,10 @@ import { AuthManager } from "./manager.js"
  * @param context Extension context
  */
 export async function debugAuthSettings(context: vscode.ExtensionContext): Promise<void> {
-  // Get token from SecretStorage
-  const secretToken = await AuthManager.getToken(context)
-  // Get URL from SecretStorage
-  const secretUrl = await AuthManager.getUrl(context)
+  // Read SecretStorage directly so the "SecretStorage" labels are accurate.
+  // AuthManager.getToken/getUrl resolve environment > settings > SecretStorage.
+  const secretToken = await context.secrets.get(AuthManager.TOKEN_KEY)
+  const secretUrl = await context.secrets.get(AuthManager.URL_KEY)
 
   // Get token from settings (for migration check)
   const config = vscode.workspace.getConfiguration("home-assistant")
@@ -37,7 +37,7 @@ export async function debugAuthSettings(context: vscode.ExtensionContext): Promi
   debugPanel.appendLine(`URL in settings.json (deprecated): ${settingsUrl || "Not configured"}`)
   debugPanel.appendLine(`URL in environment: ${envUrl || "Not configured"}`)
 
-  const activeUrl = secretUrl || envUrl || settingsUrl
+  const activeUrl = await AuthManager.getUrl(context)
   if (activeUrl) {
     debugPanel.appendLine(`Active URL: ${activeUrl}`)
     if (secretUrl === activeUrl) {
@@ -59,7 +59,7 @@ export async function debugAuthSettings(context: vscode.ExtensionContext): Promi
   debugPanel.appendLine(`Token in environment: ${envToken ? "Present" : "Not present"}`)
 
   // Show token details if available
-  const activeToken = secretToken || envToken || settingsToken
+  const activeToken = await AuthManager.getToken(context)
   if (activeToken) {
     const obscuredToken =
       activeToken.length <= 10

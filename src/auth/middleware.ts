@@ -94,32 +94,21 @@ export class AuthMiddleware {
     try {
       AuthMiddleware.log("Sending initial configuration with token and URL")
 
-      // Get token from multiple sources
-      const secretToken = await AuthManager.getToken(this.context)
-      const envToken = process.env.HASS_TOKEN || process.env.SUPERVISOR_TOKEN
-
-      const config = vscode.workspace.getConfiguration("home-assistant")
-      const settingsToken = config.get<string>("longLivedAccessToken")
-
-      const token = secretToken || envToken || settingsToken
+      // AuthManager resolves token (environment > SecretStorage) and URL (environment > workspace settings > SecretStorage)
+      const token = await AuthManager.getToken(this.context)
+      const hostUrl = await AuthManager.getUrl(this.context)
 
       if (!token) {
         AuthMiddleware.log("No token available for initial configuration")
         return
       }
 
-      // Get URL from SecretStorage first, then fallback to other sources
-      const secretUrl = await AuthManager.getUrl(this.context)
-      const settingsUrl = config.get<string>("hostUrl")
-      const envUrl =
-        process.env.HASS_SERVER || (process.env.SUPERVISOR_TOKEN ? "http://supervisor/core" : "")
-
-      const hostUrl = secretUrl || settingsUrl || envUrl
-
       if (!hostUrl) {
         AuthMiddleware.log("No server URL available for initial configuration")
         return
       }
+
+      const config = vscode.workspace.getConfiguration("home-assistant")
 
       // Create configuration object
       const settings = {
@@ -164,18 +153,8 @@ export class AuthMiddleware {
     if (Array.isArray(result)) {
       for (const item of result) {
         if (item && typeof item === "object" && "home-assistant" in item) {
-          const secretToken = await AuthManager.getToken(this.context)
-          const envToken = process.env.HASS_TOKEN || process.env.SUPERVISOR_TOKEN
-          const config = vscode.workspace.getConfiguration("home-assistant")
-          const settingsToken = config.get<string>("longLivedAccessToken")
-          const token = secretToken || envToken || settingsToken
-
-          const secretUrl = await AuthManager.getUrl(this.context)
-          const settingsUrl = config.get<string>("hostUrl")
-          const envUrl =
-            process.env.HASS_SERVER ||
-            (process.env.SUPERVISOR_TOKEN ? "http://supervisor/core" : null)
-          const url = secretUrl || settingsUrl || envUrl
+          const token = await AuthManager.getToken(this.context)
+          const url = await AuthManager.getUrl(this.context)
 
           if (!item["home-assistant"]) {
             item["home-assistant"] = {}
@@ -184,75 +163,13 @@ export class AuthMiddleware {
           if (token) {
             AuthMiddleware.log(`Injecting token (length: ${token.length}) into configuration`)
             item["home-assistant"].longLivedAccessToken = token
-
-            AuthMiddleware.log(
-              `Token injection verification: ${
-                item["home-assistant"].longLivedAccessToken === token ? "SUCCESS" : "FAILED"
-              }`
-            )
-
-            AuthMiddleware.log("Using token (present)")
-
-            // Only migrate from settings, not from environment variables
-            if (!secretToken && settingsToken) {
-              AuthMiddleware.log(
-                "Token was found in settings but not in SecretStorage, attempting migration"
-              )
-              try {
-                await AuthManager.storeToken(this.context, token)
-                await config.update(
-                  "longLivedAccessToken",
-                  undefined,
-                  vscode.ConfigurationTarget.Global
-                )
-                AuthMiddleware.log(
-                  "Successfully migrated token from settings.json to SecretStorage"
-                )
-              } catch (error) {
-                AuthMiddleware.log(`Failed to migrate token to SecretStorage: ${error.message}`)
-              }
-            } else if (!secretToken && envToken) {
-              AuthMiddleware.log("Using environment token")
-            }
           } else {
-            AuthMiddleware.log(
-              "WARNING: No token found in SecretStorage, environment, or settings for configuration item"
-            )
+            AuthMiddleware.log("WARNING: No token found for configuration item")
           }
 
           if (url) {
             AuthMiddleware.log(`Injecting URL (${url}) into configuration`)
             item["home-assistant"].hostUrl = url
-
-            // Migrate URL if found in settings but not SecretStorage (mirroring DidChangeConfigurationNotification)
-            if (!secretUrl && settingsUrl) {
-              AuthMiddleware.log(
-                "URL was found in settings (request) but not in SecretStorage, attempting migration"
-              )
-              try {
-                await AuthManager.storeUrl(this.context, url)
-                await config.update("hostUrl", undefined, vscode.ConfigurationTarget.Global)
-                AuthMiddleware.log(
-                  "Successfully migrated URL from settings.json (request) to SecretStorage"
-                )
-              } catch (error) {
-                AuthMiddleware.log(
-                  `Failed to migrate URL to SecretStorage (request): ${error.message}`
-                )
-              }
-            }
-          }
-
-          // Fallback URL injection if still not set (original logic)
-          const currentSettingsUrlFallback = config.get<string>("hostUrl") // Re-fetch as it might have been cleared by migration
-          const currentEnvUrlFallback =
-            process.env.HASS_SERVER ||
-            (process.env.SUPERVISOR_TOKEN ? "http://supervisor/core" : "")
-          const fallbackUrl = currentSettingsUrlFallback || currentEnvUrlFallback
-
-          if (fallbackUrl && !item["home-assistant"].hostUrl) {
-            item["home-assistant"].hostUrl = fallbackUrl
-            AuthMiddleware.log(`Also injected fallback URL: ${fallbackUrl}`)
           }
         }
       }
@@ -279,72 +196,20 @@ export class AuthMiddleware {
           AuthMiddleware.log("Created missing home-assistant settings object in notification")
         }
 
-        // Try to get token from multiple sources
-        const secretToken = await AuthManager.getToken(this.context)
-        const envToken = process.env.HASS_TOKEN || process.env.SUPERVISOR_TOKEN
+        // AuthManager resolves token (environment > SecretStorage) and URL (environment > workspace settings > SecretStorage)
+        const token = await AuthManager.getToken(this.context)
+        const url = await AuthManager.getUrl(this.context)
 
-        const config = vscode.workspace.getConfiguration("home-assistant")
-        const settingsToken = config.get<string>("longLivedAccessToken")
-
-        const token = secretToken || envToken || settingsToken
-
-        // Try to get URL from SecretStorage first, then fallback to settings
-        const secretUrl = await AuthManager.getUrl(this.context)
-        const settingsUrl = config.get<string>("hostUrl")
-        const envUrl =
-          process.env.HASS_SERVER ||
-          (process.env.SUPERVISOR_TOKEN ? "http://supervisor/core" : undefined)
-
-        const url = secretUrl || settingsUrl || envUrl
-
-        // Inject token if available
         if (token) {
           AuthMiddleware.log(`Injecting token (length: ${token.length}) into notification`)
           notification.settings["home-assistant"].longLivedAccessToken = token
-
-          // Inject URL if available
-          if (url) {
-            AuthMiddleware.log(`Injecting URL (${url}) into notification`)
-            notification.settings["home-assistant"].hostUrl = url
-
-            // If URL was found in settings but not in SecretStorage, migrate it
-            if (!secretUrl && settingsUrl) {
-              AuthMiddleware.log(
-                "URL was found in settings but not in SecretStorage, attempting migration"
-              )
-              try {
-                await AuthManager.storeUrl(this.context, url)
-                await config.update("hostUrl", undefined, vscode.ConfigurationTarget.Global)
-                AuthMiddleware.log("Successfully migrated URL from settings.json to SecretStorage")
-              } catch (error) {
-                AuthMiddleware.log(`Failed to migrate URL to SecretStorage: ${error.message}`)
-              }
-            }
-          }
-
-          // Only migrate from settings, not from environment variables
-          if (!secretToken && settingsToken) {
-            AuthMiddleware.log(
-              "Token was found in settings but not in SecretStorage, attempting migration"
-            )
-            try {
-              await AuthManager.storeToken(this.context, token)
-              await config.update(
-                "longLivedAccessToken",
-                undefined,
-                vscode.ConfigurationTarget.Global
-              )
-              AuthMiddleware.log("Successfully migrated token from settings.json to SecretStorage")
-            } catch (error) {
-              AuthMiddleware.log(`Failed to migrate token to SecretStorage: ${error.message}`)
-            }
-          } else if (!secretToken && envToken) {
-            AuthMiddleware.log("Using environment token (not migrated to SecretStorage)")
-          }
         } else {
-          AuthMiddleware.log(
-            "WARNING: No token found in SecretStorage, environment, or settings for notification"
-          )
+          AuthMiddleware.log("WARNING: No token found for notification")
+        }
+
+        if (url) {
+          AuthMiddleware.log(`Injecting URL (${url}) into notification`)
+          notification.settings["home-assistant"].hostUrl = url
         }
       }
     }
