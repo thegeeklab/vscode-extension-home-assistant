@@ -76,6 +76,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   const clientOptions: LanguageClientOptions = {
     documentSelector,
+    middleware: AuthMiddleware.create(context),
     synchronize: {
       configurationSection: "home-assistant",
       fileEvents: fileWatcher
@@ -121,16 +122,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     // Start the client
     await client.start()
     context.subscriptions.push({ dispose: () => client.stop() })
-
-    // Install our auth middleware to inject the token and URL from SecretStorage
-    try {
-      // @ts-expect-error - We need to access the connection which is private
-      const connection = client._connection || client
-      await AuthMiddleware.install(context, connection)
-      console.log("Auth middleware successfully installed")
-    } catch (error) {
-      console.error("Error setting up auth middleware:", error)
-    }
   } catch (error: unknown) {
     console.error("Failed to start the client:", error)
     if (error instanceof Error) {
