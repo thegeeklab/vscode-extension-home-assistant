@@ -133,6 +133,47 @@ automation:
     )
   })
 
+  test("Generic selector triggers and conditions are accepted", async () => {
+    const { diagnostics } = await testSchemaValidation(
+      `
+automation:
+  - id: generic_selector_test
+    alias: Generic Selector Test
+    trigger:
+      - trigger: light.turned_on
+        target:
+          entity_id: light.living_room
+        options:
+          transition: 2
+      - trigger: sun.sunrise
+      - trigger: climate.started_heating
+        target:
+          entity_id: climate.living_room
+    condition:
+      - condition: light.is_on
+        target:
+          entity_id: light.living_room
+      - condition: sun.is_up
+    action:
+      - action: light.turn_off
+        target:
+          entity_id: light.living_room
+`
+    )
+
+    const schemaErrors = diagnostics.filter(
+      (d) => d.source === "yaml-schema" || d.message.includes("schema")
+    )
+
+    assert.strictEqual(
+      schemaErrors.length,
+      0,
+      `Generic selector triggers/conditions should not produce schema errors: ${schemaErrors
+        .map((d) => d.message)
+        .join("; ")}`
+    )
+  })
+
   test("Temperature condition accepts between and outside thresholds", async () => {
     const { diagnostics } = await testSchemaValidation(
       `
@@ -182,7 +223,7 @@ automation:
   // It exists because the YAML language server's anyOf union matching with catch-all
   // branches (e.g., DeviceTrigger with additionalProperties: true) makes it unreliable
   // for testing negative cases (unknown properties being rejected).
-  test("Generated schema constrains selector triggers, conditions, and metadata inheritance", async () => {
+  test("Generated schema provides generic selector fallback with metadata inheritance", async () => {
     const schema = JSON.parse(
       await fs.readFile(
         path.join(
@@ -201,50 +242,37 @@ automation:
       )
     )
 
-    const climateTrigger = schema.definitions.ClimateHvacModeChangedTrigger
-    assert.ok(climateTrigger, "ClimateHvacModeChangedTrigger definition should exist")
+    const selectorTrigger = schema.definitions.SelectorTrigger
+    assert.ok(selectorTrigger, "SelectorTrigger definition should exist")
     assert.strictEqual(
-      climateTrigger.properties.options.additionalProperties,
+      selectorTrigger.additionalProperties,
       false,
-      "selector trigger options must reject unknown properties"
-    )
-    assert.deepStrictEqual(
-      climateTrigger.properties.options.properties.behavior.enum,
-      ["all", "each", "first"],
-      "behavior must be a constrained enum"
+      "selector trigger must reject unknown properties"
     )
     assert.ok(
-      climateTrigger.properties.note,
+      selectorTrigger.properties.trigger.pattern,
+      "selector trigger must constrain trigger to the domain.subtype pattern"
+    )
+    assert.ok(
+      selectorTrigger.properties.note,
       "selector triggers must inherit note from AutomationMetadata"
     )
 
-    const temperatureCondition = schema.definitions.TemperatureIsValueCondition
-    assert.ok(temperatureCondition, "TemperatureIsValueCondition definition should exist")
+    const selectorCondition = schema.definitions.SelectorCondition
+    assert.ok(selectorCondition, "SelectorCondition definition should exist")
     assert.strictEqual(
-      temperatureCondition.additionalProperties,
+      selectorCondition.additionalProperties,
       false,
-      "condition must reject unknown properties"
-    )
-    assert.deepStrictEqual(
-      temperatureCondition.properties.options.properties.threshold.properties.type.enum,
-      ["above", "below", "between", "outside"],
-      "threshold type must be a constrained enum"
+      "selector condition must reject unknown properties"
     )
     assert.ok(
-      temperatureCondition.properties.note,
-      "conditions must inherit note from AutomationMetadata"
+      selectorCondition.properties.condition.pattern,
+      "selector condition must constrain condition to the domain.subtype pattern"
     )
-
-    for (const def of [
-      "CalendarEventStartedTrigger",
-      "CalendarEventEndedTrigger",
-      "EventReceivedTrigger"
-    ]) {
-      assert.ok(
-        schema.definitions[def].properties.note,
-        `${def} must inherit note from AutomationMetadata`
-      )
-    }
+    assert.ok(
+      selectorCondition.properties.note,
+      "selector conditions must inherit note from AutomationMetadata"
+    )
   })
 
   test("Template schema accepts name, plural triggers and switch base fields", async () => {

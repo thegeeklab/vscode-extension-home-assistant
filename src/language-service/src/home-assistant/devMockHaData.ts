@@ -1,6 +1,6 @@
 import { CompletionItem, CompletionItemKind, MarkupContent } from "vscode-languageserver-protocol"
 import type { HassEntities, HassServices } from "home-assistant-js-websocket"
-import type { HassDevices } from "./haConnection.js"
+import type { HassDevices, HassSelectorDescription } from "./haConnection.js"
 
 /**
  * Static registry data for Extension Development Host testing without a live
@@ -268,4 +268,122 @@ export function getDevMockEntityCompletions(): CompletionItem[] {
       `**${e.entity_id}**\n\nState: ${e.state}\n\n`
     )
   )
+}
+
+export function getDevMockTriggerCompletions(): CompletionItem[] {
+  return [
+    completion(
+      "calendar.event_started",
+      "Calendar event started",
+      CompletionItemKind.EnumMember,
+      {
+        isTrigger: true
+      },
+      "**calendar.event_started**\n\nTrigger when a calendar event starts.\n\n"
+    ),
+    completion(
+      "calendar.event_ended",
+      "Calendar event ended",
+      CompletionItemKind.EnumMember,
+      {
+        isTrigger: true
+      },
+      "**calendar.event_ended**\n\nTrigger when a calendar event ends.\n\n"
+    ),
+    completion(
+      "climate.hvac_mode_changed",
+      "HVAC mode changed",
+      CompletionItemKind.EnumMember,
+      {
+        isTrigger: true
+      },
+      "**climate.hvac_mode_changed**\n\nTrigger when a climate entity changes HVAC mode.\n\n"
+    ),
+    completion(
+      "event.received",
+      "Event received",
+      CompletionItemKind.EnumMember,
+      {
+        isTrigger: true
+      },
+      "**event.received**\n\nTrigger when a specific event is received.\n\n"
+    ),
+    completion(
+      "light.turned_on",
+      "Light turned on",
+      CompletionItemKind.EnumMember,
+      {
+        isTrigger: true
+      },
+      "**light.turned_on**\n\nTrigger when a light turns on.\n\n"
+    ),
+    completion(
+      "sun.sunrise",
+      "Sunrise",
+      CompletionItemKind.EnumMember,
+      {
+        isTrigger: true
+      },
+      "**sun.sunrise**\n\nTrigger at sunrise.\n\n"
+    )
+  ]
+}
+
+export function getDevMockConditionCompletions(): CompletionItem[] {
+  return [
+    completion(
+      "light.is_on",
+      "Light is on",
+      CompletionItemKind.EnumMember,
+      {
+        isCondition: true
+      },
+      "**light.is_on**\n\nCondition: light is on.\n\n"
+    ),
+    completion(
+      "sun.is_up",
+      "Sun is up",
+      CompletionItemKind.EnumMember,
+      {
+        isCondition: true
+      },
+      "**sun.is_up**\n\nCondition: sun is up.\n\n"
+    ),
+    completion(
+      "temperature.is_value",
+      "Temperature is value",
+      CompletionItemKind.EnumMember,
+      {
+        isCondition: true
+      },
+      "**temperature.is_value**\n\nCondition: temperature matches a threshold.\n\n"
+    )
+  ]
+}
+
+export function getDevMockSelectorDescription(
+  selectorId: string
+): HassSelectorDescription | undefined {
+  return DEV_MOCK_SELECTOR_DESCRIPTIONS[selectorId]
+}
+
+const DEV_MOCK_SELECTOR_DESCRIPTIONS: Record<string, HassSelectorDescription> = {
+  "light.turned_on": {
+    fields: {
+      transition: { required: false, example: 2 }
+    }
+  },
+  "calendar.event_started": {
+    fields: {
+      offset: { required: false, example: "-00:15:00" }
+    }
+  },
+  "light.is_on": {
+    fields: {}
+  },
+  "temperature.is_value": {
+    fields: {
+      threshold: { required: true, example: 20 }
+    }
+  }
 }
