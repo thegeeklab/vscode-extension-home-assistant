@@ -4,7 +4,10 @@ import { CompletionItem, MarkupContent } from "vscode-languageserver-protocol"
 import { HassEntities, HassServices } from "home-assistant-js-websocket"
 import { HomeAssistantConfiguration } from "../../src/language-service/src/haConfig/haConfig.js"
 import { HomeAssistantLanguageService } from "../../src/language-service/src/haLanguageService.js"
-import { IHaConnection } from "../../src/language-service/src/home-assistant/haConnection.js"
+import {
+  IHaConnection,
+  HassSelectorDescription
+} from "../../src/language-service/src/home-assistant/haConnection.js"
 import { SchemaServiceForIncludes } from "../../src/language-service/src/schemas/schemaService.js"
 import { FileAccessor } from "../../src/server/fileAccessor.js"
 import { getLanguageService } from "yaml-language-server"
@@ -46,6 +49,9 @@ export interface MockHaConnectionOptions {
   floorCompletions?: CompletionItem[]
   labelCompletions?: CompletionItem[]
   serviceCompletions?: CompletionItem[]
+  triggerCompletions?: CompletionItem[]
+  conditionCompletions?: CompletionItem[]
+  selectorDescriptions?: Record<string, HassSelectorDescription>
 }
 
 export class MockHaConnection implements IHaConnection {
@@ -85,6 +91,18 @@ export class MockHaConnection implements IHaConnection {
 
   async getServiceCompletions(): Promise<CompletionItem[]> {
     return this.options.serviceCompletions ?? []
+  }
+
+  async getTriggerCompletions(): Promise<CompletionItem[]> {
+    return this.options.triggerCompletions ?? []
+  }
+
+  async getConditionCompletions(): Promise<CompletionItem[]> {
+    return this.options.conditionCompletions ?? []
+  }
+
+  async getSelectorDescription(selectorId: string): Promise<HassSelectorDescription | undefined> {
+    return this.options.selectorDescriptions?.[selectorId]
   }
 
   async getHassEntities(): Promise<HassEntities> {

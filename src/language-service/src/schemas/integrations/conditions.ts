@@ -4,6 +4,7 @@
  */
 import {
   AutomationMetadata,
+  Data,
   DeviceTrackerEntities,
   DynamicTemplate,
   Entities,
@@ -38,48 +39,40 @@ export type Condition =
   | ShorthandCondition
   | StateCondition
   | SunCondition
-  | TemperatureIsValueCondition
+  | SelectorCondition
   | TemplateCondition
   | TimeCondition
   | TriggerCondition
   | ZoneCondition
 
-interface TemperatureIsValueCondition extends AutomationMetadata {
+/**
+ * Shared target block for integration-provided selector triggers and conditions.
+ */
+export interface SelectorTarget {
+  entity_id?: Entities
+  device_id?: string | string[]
+  area_id?: string | string[]
+  floor_id?: string | string[]
+  label_id?: string | string[]
+}
+
+/**
+ * Integration-provided condition selectors (Home Assistant 2024.12+) use the
+ * `condition: <domain>.<subtype>` form with a `target` and `options`. This generic
+ * fallback accepts all of them so each selector does not need a dedicated schema.
+ */
+interface SelectorCondition extends AutomationMetadata {
   alias?: string
   enabled?: boolean
-  condition: "temperature.is_value"
-  target: { entity_id: Entities }
-  options: {
-    behavior?: "any" | "all"
-    for?: TimePeriod
-    threshold: {
-      type: "above" | "below" | "between" | "outside"
-      value?:
-        | number
-        | {
-            active_choice?: "number" | "entity"
-            number?: number
-            entity?: string
-            unit_of_measurement?: string
-          }
-      value_min?:
-        | number
-        | {
-            active_choice?: "number" | "entity"
-            number?: number
-            entity?: string
-            unit_of_measurement?: string
-          }
-      value_max?:
-        | number
-        | {
-            active_choice?: "number" | "entity"
-            number?: number
-            entity?: string
-            unit_of_measurement?: string
-          }
-    }
-  }
+
+  /**
+   * @TJS-pattern ^[a-z][a-z0-9_]*\.[a-z0-9_]+$
+   */
+  condition: string
+
+  target?: SelectorTarget
+
+  options?: Data
 }
 
 export interface ShorthandCondition extends AutomationMetadata {

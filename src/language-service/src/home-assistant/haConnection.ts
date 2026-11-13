@@ -19,10 +19,13 @@ import {
   DEV_MOCK_FLOORS,
   DEV_MOCK_LABELS,
   DEV_MOCK_SERVICES,
+  getDevMockConditionCompletions,
   getDevMockDomainCompletions,
   getDevMockEntityCompletions,
   getDevMockHassDevices,
-  getDevMockServiceCompletions
+  getDevMockSelectorDescription,
+  getDevMockServiceCompletions,
+  getDevMockTriggerCompletions
 } from "./devMockHaData.js"
 
 export interface HassArea {
@@ -110,6 +113,67 @@ export interface HassEntityRegistry {
   [entity_id: string]: HassEntityRegistryEntry
 }
 
+export interface HassSelectorField {
+  example?: string | boolean | number
+  default?: unknown
+  required?: boolean
+  selector?: Record<string, unknown>
+  context?: Record<string, string>
+}
+
+export interface HassSelectorDescription {
+  target?: Record<string, unknown>
+  fields: Record<string, HassSelectorField>
+}
+
+export type HassSelectorDescriptions = Record<string, HassSelectorDescription>
+
+interface SelectorDescriptionsState {
+  promise: Promise<HassSelectorDescriptions> | undefined
+  cache: HassSelectorDescriptions | undefined
+  unsubscribe: (() => void) | undefined
+}
+
+interface SelectorCompletionsMemo {
+  source: HassSelectorDescriptions
+  items: CompletionItem[]
+}
+
+function createSelectorDescriptionsState(): SelectorDescriptionsState {
+  return { promise: undefined, cache: undefined, unsubscribe: undefined }
+}
+
+function resetSelectorDescriptionsState(state: SelectorDescriptionsState): void {
+  state.promise = undefined
+  state.cache = undefined
+  state.unsubscribe = undefined
+}
+
+export const SELECTOR_ID_REGEX = /^[a-z][a-z0-9_]*\.[a-z0-9_]+$/
+
+function escapeMarkdownTableCell(value: string | number | boolean | undefined): string {
+  return String(value ?? "")
+    .replace(/\\/g, "\\\\")
+    .replace(/\r?\n/g, " ")
+    .replace(/\|/g, "\\|")
+}
+
+export function formatSelectorFieldsTable(
+  fields: Record<string, HassSelectorField> | undefined
+): string {
+  const entries = Object.entries(fields ?? {})
+  if (entries.length === 0) {
+    return ""
+  }
+
+  let table = "| Field | Required | Example |\r\n"
+  table += "| :---- | :---- | :---- |\r\n"
+  for (const [fieldKey, fieldValue] of entries) {
+    table += `| ${escapeMarkdownTableCell(fieldKey)} | ${fieldValue.required ? "yes" : "no"} | ${escapeMarkdownTableCell(fieldValue.example)} |\r\n`
+  }
+  return table
+}
+
 // Normal require(), and cast to the static type
 // const ha =
 
@@ -129,6 +193,9 @@ export interface IHaConnection {
   getHassDevices(): Promise<HassDevices>
   getHassEntityRegistry(): Promise<HassEntityRegistry>
   getHassServices(): Promise<HassServices>
+  getTriggerCompletions(): Promise<CompletionItem[]>
+  getConditionCompletions(): Promise<CompletionItem[]>
+  getSelectorDescription(selectorId: string): Promise<HassSelectorDescription | undefined>
   resolveEntityCompletionDocumentation(entityId: string): Promise<MarkupContent | undefined>
 }
 
@@ -156,6 +223,14 @@ export class HaConnection implements IHaConnection {
   // Track unsubscribe functions to prevent memory leaks
   private unsubscribeEntities: (() => void) | undefined
   private unsubscribeServices: (() => void) | undefined
+
+  // Selector (trigger/condition) description subscription state
+  private triggerSelectorState: SelectorDescriptionsState = createSelectorDescriptionsState()
+  private conditionSelectorState: SelectorDescriptionsState = createSelectorDescriptionsState()
+
+  // Memoized selector completions keyed by the descriptions object they were built from
+  private triggerCompletionsMemo: SelectorCompletionsMemo | undefined
+  private conditionCompletionsMemo: SelectorCompletionsMemo | undefined
 
   // Track the last successful configuration to avoid unnecessary reconnections
   private lastSuccessfulConfig: {
@@ -541,10 +616,14 @@ export class HaConnection implements IHaConnection {
     this.hassFloors = undefined as any
     this.hassLabels = undefined as any
     this.hassServices = undefined as any
+    resetSelectorDescriptionsState(this.triggerSelectorState)
+    resetSelectorDescriptionsState(this.conditionSelectorState)
 
     // Clear caches to release memory
     this.currentEntitiesCache = undefined
     this.currentServicesCache = undefined
+    this.triggerCompletionsMemo = undefined
+    this.conditionCompletionsMemo = undefined
 
     try {
       await this.tryConnect()
@@ -1348,6 +1427,151 @@ export class HaConnection implements IHaConnection {
     return completions
   }
 
+  private getHassSelectorDescriptions = async (
+    state: SelectorDescriptionsState,
+    subscribeType: string,
+    kind: string
+  ): Promise<HassSelectorDescriptions> => {
+    if (state.cache !== undefined) {
+      return state.cache
+    }
+
+    if (state.promise !== undefined) {
+      return state.promise
+    }
+
+    await this.createConnection()
+
+    if (state.promise !== undefined) {
+      return state.promise
+    }
+
+    state.promise = new Promise<HassSelectorDescriptions>(
+      // eslint-disable-next-line no-async-promise-executor
+      async (resolve) => {
+        if (!this.connection) {
+          return resolve({})
+        }
+        try {
+          if (state.unsubscribe) {
+            state.unsubscribe()
+            state.unsubscribe = undefined
+          }
+          const unsubscribe = await this.connection.subscribeMessage<HassSelectorDescriptions>(
+            (descriptions) => {
+              // The first event carries all descriptions; later events only carry
+              // newly registered selectors, so merge instead of overwriting.
+              state.cache = {
+                ...state.cache,
+                ...descriptions
+              }
+              console.log(
+                `Got ${Object.keys(state.cache).length} ${kind} selectors from Home Assistant`
+              )
+              resolve(state.cache)
+            },
+            { type: subscribeType }
+          )
+          state.unsubscribe = () => {
+            void unsubscribe()
+          }
+        } catch (error) {
+          console.log(`Could not fetch ${kind} selectors from Home Assistant:`, error)
+          resolve({})
+        }
+      }
+    )
+    return state.promise
+  }
+
+  private buildSelectorCompletions(
+    descriptions: HassSelectorDescriptions,
+    isTrigger: boolean
+  ): CompletionItem[] {
+    const completions: CompletionItem[] = []
+    for (const [selectorId, description] of Object.entries(descriptions)) {
+      if (!SELECTOR_ID_REGEX.test(selectorId)) {
+        continue
+      }
+      const completionItem = CompletionItem.create(selectorId)
+      completionItem.kind = CompletionItemKind.EnumMember
+      completionItem.filterText = selectorId
+      completionItem.insertText = selectorId
+      completionItem.data = isTrigger ? { isTrigger: true } : { isCondition: true }
+      completionItem.documentation = {
+        kind: "markdown",
+        value: `**${selectorId}**\r\n\r\n`
+      } as MarkupContent
+
+      completionItem.documentation.value += formatSelectorFieldsTable(description.fields)
+      completions.push(completionItem)
+    }
+    return completions
+  }
+
+  public async getTriggerCompletions(): Promise<CompletionItem[]> {
+    if (this.configurationService.devMockConnection) {
+      return getDevMockTriggerCompletions()
+    }
+
+    const descriptions = await this.getHassSelectorDescriptions(
+      this.triggerSelectorState,
+      "trigger_platforms/subscribe",
+      "trigger"
+    )
+
+    if (this.triggerCompletionsMemo?.source === descriptions) {
+      return this.triggerCompletionsMemo.items
+    }
+
+    const items = this.buildSelectorCompletions(descriptions, true)
+    this.triggerCompletionsMemo = { source: descriptions, items }
+    return items
+  }
+
+  public async getConditionCompletions(): Promise<CompletionItem[]> {
+    if (this.configurationService.devMockConnection) {
+      return getDevMockConditionCompletions()
+    }
+
+    const descriptions = await this.getHassSelectorDescriptions(
+      this.conditionSelectorState,
+      "condition_platforms/subscribe",
+      "condition"
+    )
+
+    if (this.conditionCompletionsMemo?.source === descriptions) {
+      return this.conditionCompletionsMemo.items
+    }
+
+    const items = this.buildSelectorCompletions(descriptions, false)
+    this.conditionCompletionsMemo = { source: descriptions, items }
+    return items
+  }
+
+  public async getSelectorDescription(
+    selectorId: string
+  ): Promise<HassSelectorDescription | undefined> {
+    if (this.configurationService.devMockConnection) {
+      return getDevMockSelectorDescription(selectorId)
+    }
+
+    const [triggerDescriptions, conditionDescriptions] = await Promise.all([
+      this.getHassSelectorDescriptions(
+        this.triggerSelectorState,
+        "trigger_platforms/subscribe",
+        "trigger"
+      ),
+      this.getHassSelectorDescriptions(
+        this.conditionSelectorState,
+        "condition_platforms/subscribe",
+        "condition"
+      )
+    ])
+
+    return triggerDescriptions[selectorId] ?? conditionDescriptions[selectorId]
+  }
+
   public disconnect(): void {
     if (!this.connection) {
       return
@@ -1363,6 +1587,16 @@ export class HaConnection implements IHaConnection {
       this.unsubscribeServices()
       this.unsubscribeServices = undefined
     }
+    if (this.triggerSelectorState.unsubscribe) {
+      this.triggerSelectorState.unsubscribe()
+    }
+    if (this.conditionSelectorState.unsubscribe) {
+      this.conditionSelectorState.unsubscribe()
+    }
+    resetSelectorDescriptionsState(this.triggerSelectorState)
+    resetSelectorDescriptionsState(this.conditionSelectorState)
+    this.triggerCompletionsMemo = undefined
+    this.conditionCompletionsMemo = undefined
 
     // Clear caches to release memory immediately on disconnect
     this.currentEntitiesCache = undefined

@@ -20,11 +20,18 @@ import { DeviceCompletionContribution } from "./completionHelpers/deviceIds.js"
 import { EntityIdCompletionContribution } from "./completionHelpers/entityIds.js"
 import { FloorCompletionContribution } from "./completionHelpers/floors.js"
 import { LabelCompletionContribution } from "./completionHelpers/labels.js"
-import { HaConnection, HassEntityRegistry } from "./home-assistant/haConnection.js"
+import {
+  HaConnection,
+  HassEntityRegistry,
+  HassSelectorDescription,
+  SELECTOR_ID_REGEX,
+  formatSelectorFieldsTable
+} from "./home-assistant/haConnection.js"
 import { ServicesCompletionContribution } from "./completionHelpers/services.js"
 import { DomainCompletionContribution } from "./completionHelpers/domains.js"
 import { UuidCompletionContribution } from "./completionHelpers/uuids.js"
 import { SecretsCompletionContribution } from "./completionHelpers/secrets.js"
+import { SelectorCompletionContribution } from "./completionHelpers/selectors.js"
 import { DefinitionProvider } from "./definition/definition.js"
 import { HomeAssistantConfiguration } from "./haConfig/haConfig.js"
 import { Includetype } from "./haConfig/dto.js"
@@ -1886,6 +1893,17 @@ export class HomeAssistantLanguageService {
     }
 
     try {
+      // Check for selector (trigger/condition) hover information
+      const selectorHover = await this.getSelectorHoverInfo(document, position)
+      if (selectorHover) {
+        return selectorHover
+      }
+    } catch (error) {
+      console.error("Error in getSelectorHoverInfo:", error)
+      // Continue to try other hover providers
+    }
+
+    try {
       // Check if we're hovering over a YAML key or value
       const isOnKey = this.isHoveringOverYamlKey(document, position)
 
@@ -2119,6 +2137,65 @@ export class HomeAssistantLanguageService {
       console.log("Error getting service hover info:", error)
       return null
     }
+  }
+
+  private async getSelectorHoverInfo(
+    document: TextDocument,
+    position: Position
+  ): Promise<Hover | null> {
+    try {
+      // Get the word at the position
+      const text = document.getText()
+      const offset = document.offsetAt(position)
+
+      // Find the word boundaries
+      let start = offset
+      let end = offset
+
+      // Move start backward to find start of word
+      while (start > 0 && /[a-z0-9_.]/i.test(text[start - 1])) {
+        start--
+      }
+
+      // Move end forward to find end of word
+      while (end < text.length && /[a-z0-9_.]/i.test(text[end])) {
+        end++
+      }
+
+      const word = text.substring(start, end)
+
+      // Selector IDs use the <domain>.<subtype> form
+      if (!SELECTOR_ID_REGEX.test(word)) {
+        return null
+      }
+
+      const description = await this.haConnection.getSelectorDescription(word)
+      if (!description) {
+        return null
+      }
+
+      const range = Range.create(document.positionAt(start), document.positionAt(end))
+
+      return {
+        contents: {
+          kind: "markdown",
+          value: this.formatSelectorDescriptionMarkdown(word, description)
+        },
+        range
+      }
+    } catch (error) {
+      console.log("Error getting selector hover info:", error)
+      return null
+    }
+  }
+
+  private formatSelectorDescriptionMarkdown(
+    selectorId: string,
+    description: HassSelectorDescription
+  ): string {
+    let markdown = `**${selectorId}**\r\n\r\n`
+    markdown += formatSelectorFieldsTable(description.fields)
+    return markdown
   }
 
   private async getTemplateHoverInfo(
@@ -2648,7 +2725,8 @@ export class HomeAssistantLanguageService {
     properties.services = ServicesCompletionContribution.propertyMatches
     properties.domains = DomainCompletionContribution.propertyMatches
     properties.uuids = UuidCompletionContribution.propertyMatches
-    properties.uuids = UuidCompletionContribution.propertyMatches
+    properties.triggers = SelectorCompletionContribution.triggerPropertyMatches
+    properties.conditions = SelectorCompletionContribution.conditionPropertyMatches
 
     const additionalCompletionProvider = this.findAutoCompletionProperty(
       document,
@@ -2694,6 +2772,16 @@ export class HomeAssistantLanguageService {
       case "uuids":
         // Generate UUID completions for id and unique_id properties
         additionalCompletion = this.getUuidCompletions()
+        break
+      case "triggers":
+        if (!currentCompletions.items.some((x) => x.data && x.data.isTrigger)) {
+          additionalCompletion = await this.haConnection.getTriggerCompletions()
+        }
+        break
+      case "conditions":
+        if (!currentCompletions.items.some((x) => x.data && x.data.isCondition)) {
+          additionalCompletion = await this.haConnection.getConditionCompletions()
+        }
         break
     }
     return additionalCompletion

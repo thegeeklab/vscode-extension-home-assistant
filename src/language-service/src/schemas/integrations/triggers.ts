@@ -25,72 +25,42 @@ import {
 
 import { WebOSTvTrigger } from "./core/webostv.js"
 import { KnxTelegramTrigger } from "./core/knx.js"
-import type { Weekday } from "./conditions.js"
+import type { SelectorTarget, Weekday } from "./conditions.js"
 
-interface TriggerTarget {
-  entity_id: Entities
-}
-
-/** Integration-provided trigger selectors use a target/options wrapper. */
-interface CalendarEventStartedTrigger extends AutomationMetadata {
+/**
+ * Integration-provided trigger selectors (Home Assistant 2024.12+) use the
+ * `trigger: <domain>.<subtype>` form with a `target` and `options`. This generic
+ * fallback accepts all of them so each selector does not need a dedicated schema.
+ */
+interface SelectorTrigger extends AutomationMetadata {
   alias?: string
   enabled?: boolean
   id?: string
-  trigger: "calendar.event_started"
-  target: TriggerTarget
-  options?: { offset?: TimePeriod; offset_type?: "before" | "after" }
-  variables?: Data
-}
 
-interface CalendarEventEndedTrigger extends AutomationMetadata {
-  alias?: string
-  enabled?: boolean
-  id?: string
-  trigger: "calendar.event_ended"
-  target: TriggerTarget
-  options?: { offset?: TimePeriod; offset_type?: "before" | "after" }
-  variables?: Data
-}
+  /**
+   * @TJS-pattern ^[a-z][a-z0-9_]*\.[a-z0-9_]+$
+   */
+  trigger: string
 
-interface ClimateHvacModeChangedTrigger extends AutomationMetadata {
-  alias?: string
-  enabled?: boolean
-  id?: string
-  trigger: "climate.hvac_mode_changed"
-  target: TriggerTarget
-  options?: {
-    behavior?: "each" | "first" | "all"
-    for?: TimePeriod
-    hvac_mode?: string | string[]
-  }
-  variables?: Data
-}
+  target?: SelectorTarget
 
-interface EventReceivedTrigger extends AutomationMetadata {
-  alias?: string
-  enabled?: boolean
-  id?: string
-  trigger: "event.received"
-  target: TriggerTarget
-  options?: { event_type?: string | string[] }
+  options?: Data
+
   variables?: Data
 }
 
 export type Trigger =
-  | CalendarEventStartedTrigger
-  | CalendarEventEndedTrigger
   | CalendarTrigger
-  | ClimateHvacModeChangedTrigger
   | ConversationTrigger
   | DeviceTrigger
   | EventTrigger
-  | EventReceivedTrigger
   | GeolocationTrigger
   | HomeAssistantTrigger
   | KnxTelegramTrigger
   | MqttTrigger
   | NumericStateTrigger
   | PersistentNotificationTrigger
+  | SelectorTrigger
   | StateTrigger
   | SunTrigger
   | TagTrigger
