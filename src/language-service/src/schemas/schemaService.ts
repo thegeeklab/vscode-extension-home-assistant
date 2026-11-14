@@ -140,6 +140,4 @@ export interface PathToSchemaMapping {
   key: string
   path: string
   file: string
-  tsFile: string
-  fromType: string
 }

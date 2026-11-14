@@ -212,23 +212,17 @@
   {
     "key": "lovelace-dashboard",
     "path": "ui-lovelace.yaml",
-    "file": "lovelace-dashboard.json",
-    "tsFile": "lovelace/dashboard.ts",
-    "fromType": "Dashboard"
+    "file": "lovelace-dashboard.json"
   },
   {
     "key": "lovelace-views",
     "path": "ui-lovelace.yaml/views",
-    "file": "lovelace-views.json",
-    "tsFile": "lovelace/view.ts",
-    "fromType": "View"
+    "file": "lovelace-views.json"
   },
   {
     "key": "lovelace-cards",
     "path": "ui-lovelace.yaml/views/cards",
-    "file": "lovelace-cards.json",
-    "tsFile": "lovelace/types.ts",
-    "fromType": "CardsFile"
+    "file": "lovelace-cards.json"
   },
   {
     "key": "blueprint-automation",

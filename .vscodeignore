@@ -4,6 +4,7 @@
 .vscode-test/**
 src/**
 test/**
+scripts/**
 out/test/**
 .eslintrc.json
 eslint.config.js

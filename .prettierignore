@@ -3,3 +3,4 @@ out
 dist
 test/fixtures
 src/language-service/src/schemas/json
+scripts/.frontend

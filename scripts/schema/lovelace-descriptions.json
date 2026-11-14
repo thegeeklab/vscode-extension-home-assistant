@@ -1,0 +1,383 @@
+{
+  "cards": {
+    "alarm-panel": {
+      "type": "The Alarm Panel card allows you to Arm and Disarm your alarm control panel integrations.\nhttps://www.home-assistant.io/lovelace/alarm-panel/",
+      "entity": "Entity ID of alarm_control_panel domain\nhttps://www.home-assistant.io/lovelace/alarm-panel/#entity",
+      "name": "Overwrites Friendly Name.\nhttps://www.home-assistant.io/lovelace/alarm-panel/#name",
+      "states": "Controls which states to have available.\nhttps://www.home-assistant.io/lovelace/alarm-panel/#states",
+      "theme": "Set to any theme within themes.yaml.\nhttps://www.home-assistant.io/lovelace/alarm-panel/#theme",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "area": {
+      "type": "The Area card lets you control and monitor an individual area.\nhttps://www.home-assistant.io/lovelace/area/",
+      "area": "The ID of the area to show.\nhttps://www.home-assistant.io/lovelace/area/#area",
+      "navigation_path": "Link to Lovelace view.\nhttps://www.home-assistant.io/lovelace/area/#navigation_path",
+      "show_camera": "Changes the area picture to a live feed of the camera set for the area.\nhttps://www.home-assistant.io/lovelace/area/#show_camera"
+    },
+    "button": {
+      "type": "The Button card allows you to add a button to your dashboard that can trigger an action.\nhttps://www.home-assistant.io/lovelace/button/",
+      "double_tap_action": "The action taken on card double-tap.\nhttps://www.home-assistant.io/lovelace/button/#double_tap_action",
+      "entity": "The entity ID the card interacts with, for example, light.living_room.\nhttps://www.home-assistant.io/lovelace/button/#entity",
+      "hold_action": "The action taken on card tap and hold.\nhttps://www.home-assistant.io/lovelace/button/#hold_action",
+      "icon_height": "The height of the icon. Any CSS value may be used.\nhttps://www.home-assistant.io/lovelace/button/#icon_height",
+      "icon": "The icon that is displayed on the card. It defaults to the entity domain icon only if the card interacts with an entity. Otherwise, if not configured, no icon is displayed.\nhttps://www.home-assistant.io/lovelace/button/#icon",
+      "name": "The button name that is displayed on the card. It defaults to the entity name only if the card interacts with an entity. Otherwise, if not configured, no name is displayed.\nhttps://www.home-assistant.io/lovelace/button/#name",
+      "show_icon": "If false, the icon is not shown on the card.\nhttps://www.home-assistant.io/lovelace/button/#show_icon",
+      "show_name": "If false, the button name is not shown on the card.\nhttps://www.home-assistant.io/lovelace/button/#show_name",
+      "show_state": "If false, the button state is not shown on the card.\nhttps://www.home-assistant.io/lovelace/button/#show_state",
+      "state_color": "If false, the icon does not change color when the entity is active.\nhttps://www.home-assistant.io/lovelace/button/#state_color",
+      "tap_action": "The action taken on card tap.\nhttps://www.home-assistant.io/lovelace/button/#tap_action",
+      "theme": "The card theme, which may be set to any theme from the themes.yaml file.\nhttps://www.home-assistant.io/lovelace/button/#theme",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "calendar": {
+      "type": "The Calendar card displays your calendar entities in a month, day and list view.\nhttps://www.home-assistant.io/lovelace/calendar/",
+      "entities": "A list of calendar entities that will be displayed in the card.\nhttps://www.home-assistant.io/lovelace/calendar/#entities",
+      "initial_view": "The view that will show first when the card is loaded onto the page.\nhttps://www.home-assistant.io/lovelace/calendar/#initial_view",
+      "theme": "The card theme, which may be set to any theme from the themes.yaml file.\nhttps://www.home-assistant.io/lovelace/calendar/#theme",
+      "title": "The title of the card.\nhttps://www.home-assistant.io/lovelace/calendar/#title",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "conditional": {
+      "type": "The Conditional card displays another card based on entity states.\nhttps://www.home-assistant.io/lovelace/conditional/",
+      "card": "Card to display if all conditions match.\nhttps://www.home-assistant.io/lovelace/conditional/#card",
+      "conditions": "List of entity IDs and matching states.\nhttps://www.home-assistant.io/lovelace/conditional/#conditions",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "energy-carbon-consumed-gauge": {
+      "type": "The carbon consumed gauge card represents how much of the energy consumed by your home was generated using non-fossil fuels like solar, wind and nuclear.\nhttps://www.home-assistant.io/lovelace/energy/#carbon-consumed-gauge",
+      "title": "The card title.",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "energy-date-selection": {
+      "type": "This card will allow you to pick what date to show.\nhttps://www.home-assistant.io/lovelace/energy/#energy-date-picker",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "energy-devices-graph": {
+      "type": "The devices energy graph show the energy usage per device, it is sorted by usage.\nhttps://www.home-assistant.io/lovelace/energy/#devices-energy-graph",
+      "title": "The card title.",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "energy-distribution": {
+      "type": "The energy distribution card shows how the energy flowed, from the grid to your house, from your solar panels to your house and/or back to the grid.\nhttps://www.home-assistant.io/lovelace/energy/#energy-distribution",
+      "title": "The card title.",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "energy-gas-graph": {
+      "type": "The gas consumption graph card shows the amount of gas consumed per source.\nhttps://www.home-assistant.io/lovelace/energy/#gas-consumption-graph",
+      "title": "The card title.",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "energy-grid-neutrality-gauge": {
+      "type": "The solar consumed gauge represents how much of the solar energy was not used by your home and was returned to the grid.\nhttps://www.home-assistant.io/lovelace/energy/#solar-consumed-gauge",
+      "title": "The card title.",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "energy-solar-graph": {
+      "type": "The solar production graph card shows the amount of energy your solar panels have produced per source, and if setup and available the forecast of the solar production.\nhttps://www.home-assistant.io/lovelace/energy/#solar-production-graph",
+      "title": "The card title.",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "energy-sources-table": {
+      "type": "The energy sources table card shows all your energy sources, and the corresponding amount of energy.\nhttps://www.home-assistant.io/lovelace/energy/#energy-sources-table",
+      "title": "The card title.",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "energy-usage-graph": {
+      "type": "The energy usage graph card shows the amount of energy your house has consumed, and from what source this energy came.\nhttps://www.home-assistant.io/lovelace/energy/#energy-usage-graph",
+      "title": "The card title.",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "entities": {
+      "type": "The Entities card is the most common type of card. It groups items together into lists.\nhttps://www.home-assistant.io/lovelace/entities/",
+      "entities": "A list of entity IDs or entity (row) objects.\nhttps://www.home-assistant.io/lovelace/entities/#entities",
+      "footer": "Header widget to render.\nhttps://www.home-assistant.io/lovelace/header-footer/",
+      "header": "Footer widget to render.\nhttps://www.home-assistant.io/lovelace/header-footer/",
+      "icon": "An icon to display to the left of the title.\nhttps://www.home-assistant.io/lovelace/entities/#icon",
+      "show_header_toggle": "Button to turn on/off all entities.\nhttps://www.home-assistant.io/lovelace/entities/#show_header_toggle",
+      "state_color": "Set to true to have icons colored when entity is active.\nhttps://www.home-assistant.io/lovelace/entities/#state_color",
+      "theme": "Set to any theme within themes.yaml.\nhttps://www.home-assistant.io/lovelace/entities/#theme",
+      "title": "The card title.\nhttps://www.home-assistant.io/lovelace/entities/#title",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "entity": {
+      "type": "The Entity card gives you a quick overview of your entity’s state.\nhttps://www.home-assistant.io/lovelace/entity",
+      "attribute": "An attribute associated with the entity.\nhttps://www.home-assistant.io/lovelace/entity/#attribute",
+      "entity": "Name of Entity\nhttps://www.home-assistant.io/lovelace/entity/#entity",
+      "icon": "Overwrites icon.\nhttps://www.home-assistant.io/lovelace/entity/#icon",
+      "name": "Name of Entity.\nhttps://www.home-assistant.io/lovelace/entity/#name",
+      "state_color": "Set to true to have icon colored when entity is active.\nhttps://www.home-assistant.io/lovelace/entity/#state_color",
+      "theme": "Set to any theme within themes.yaml.\nhttps://www.home-assistant.io/lovelace/entity/#theme",
+      "unit": "Unit of Measurement given to the data displayed.\nhttps://www.home-assistant.io/lovelace/entity/#unit",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "entity-button": {
+      "type": "DEPRECATED. The entity-button card has been replaced by the button card.\nhttps://www.home-assistant.io/lovelace/button/"
+    },
+    "entity-filter": {
+      "type": "The Entity Filter card allows you to define a list of entities that you want to track only when in a certain state.\nhttps://www.home-assistant.io/lovelace/entity-filter/",
+      "card": "Extra options to pass down to the card rendering the result.\nhttps://www.home-assistant.io/lovelace/entity-filter/#card",
+      "entities": "A list of entity IDs or entity objects, see below.\nhttps://www.home-assistant.io/lovelace/entity-filter/#entities",
+      "show_empty": "Allows hiding of card when no entities returned by filter.\nhttps://www.home-assistant.io/lovelace/entity-filter/#show_empty",
+      "state_filter": "List of strings representing states or filter objects.\nhttps://www.home-assistant.io/lovelace/entity-filter/#state_filter",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "gauge": {
+      "type": "The Gauge card is a basic card that allows visually seeing sensor data.\nhttps://www.home-assistant.io/lovelace/gauge/",
+      "entity": "Entity id to show.\nhttps://www.home-assistant.io/lovelace/gauge/#entity",
+      "max": "Maximum value for graph.\nhttps://www.home-assistant.io/lovelace/gauge/#max",
+      "min": "Minimum value for graph.\nhttps://www.home-assistant.io/lovelace/gauge/#min",
+      "name": "Name of Gauge Entity.\nhttps://www.home-assistant.io/lovelace/gauge/#name",
+      "needle": "Show the gauge as a needle gauge.\nhttps://www.home-assistant.io/lovelace/gauge/#needle",
+      "segments": "List of colors and their corresponding start values. Segments will override the severity settings.\nhttps://www.home-assistant.io/dashboards/gauge/#segments",
+      "severity": "Allows setting of colors for different numbers.\nhttps://www.home-assistant.io/lovelace/gauge/#severity",
+      "theme": "Set to any theme within themes.yaml.\nhttps://www.home-assistant.io/lovelace/gauge/#theme",
+      "unit": "Unit of Measurement given to data.\nhttps://www.home-assistant.io/lovelace/gauge/#unit",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "glance": {
+      "type": "The Glance card is useful to group multiple sensors in a compact overview.\nhttps://www.home-assistant.io/lovelace/glance/",
+      "columns": "Number of columns to show. If not specified the number will be set automatically.\nhttps://www.home-assistant.io/lovelace/glance/#columns",
+      "entities": "A list of entity IDs or entity objects.\nhttps://www.home-assistant.io/lovelace/glance/#entities",
+      "show_icon": "Show entity icon.\nhttps://www.home-assistant.io/lovelace/glance/#show_icon",
+      "show_name": "Show entity name.\nhttps://www.home-assistant.io/lovelace/glance/#show_name",
+      "show_state": "Show entity state-text.\nhttps://www.home-assistant.io/lovelace/glance/#show_state",
+      "state_color": "Set to true to have icons colored when entity is active.\nhttps://www.home-assistant.io/lovelace/glance/#state_color",
+      "theme": "Set to any theme within themes.yaml.\nhttps://www.home-assistant.io/lovelace/glance/#theme",
+      "title": "Card title.\nhttps://www.home-assistant.io/lovelace/glance/#theme",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "grid": {
+      "type": "The Grid card allows you to show multiple cards in a grid. It will first fill the columns, automatically adding new rows as needed.\nhttps://www.home-assistant.io/lovelace/grid/",
+      "cards": "List of cards.\nhttps://www.home-assistant.io/lovelace/grid/#cards",
+      "columns": "Number of columns in the grid.\nhttps://www.home-assistant.io/lovelace/grid/#columns",
+      "square": "Should the cards be shown square.\nhttps://www.home-assistant.io/lovelace/grid/#square",
+      "title": "Title of Grid.\nhttps://www.home-assistant.io/lovelace/grid/#title",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "heading": {
+      "type": "The Heading card allows you to add headings to your dashboard, typically at the top of a section.\nhttps://www.home-assistant.io/dashboards/heading/",
+      "heading": "The text of the heading.\nhttps://www.home-assistant.io/dashboards/heading/#heading",
+      "heading_style": "The style of the heading.\nhttps://www.home-assistant.io/dashboards/heading/#heading_style",
+      "icon": "The icon displayed next to the heading.\nhttps://www.home-assistant.io/dashboards/heading/#icon",
+      "tap_action": "The action taken when the heading is tapped.\nhttps://www.home-assistant.io/dashboards/heading/#tap_action",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "history-graph": {
+      "type": "The History Graph card allows you to display a graph for each of the entities listed.\nhttps://www.home-assistant.io/lovelace/history-graph/",
+      "entities": "A list of entity IDs or entity objects.\nhttps://www.home-assistant.io/lovelace/history-graph/#entities",
+      "hours_to_show": "Hours to show. Minimum is 1 hour, maximum of 80 hours.\nhttps://www.home-assistant.io/lovelace/history-graph/#hours_to_show",
+      "title": "The card title.\nhttps://www.home-assistant.io/lovelace/history-graph/#title",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "horizontal-stack": {
+      "type": "The Horizontal Stack card allows you to stack together multiple cards, so they always sit next to each other in the space of one column\nhttps://www.home-assistant.io/lovelace/horizontal-stack/",
+      "cards": "List of cards.\nhttps://www.home-assistant.io/lovelace/horizontal-stack/#cards",
+      "title": "Title of Stack.\nhttps://www.home-assistant.io/lovelace/horizontal-stack/#title",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "humidifier": {
+      "type": "The Humidifier card lets you control and monitor humidifiers, dehumidifiers, and hygrostat devices.\nhttps://www.home-assistant.io/lovelace/humidifier/",
+      "entity": "Entity id of humidifier domain.\nhttps://www.home-assistant.io/lovelace/humidifier/#entity",
+      "name": "Name of Entity.\nhttps://www.home-assistant.io/lovelace/humidifier/#name",
+      "theme": "Set to any theme within themes.yaml.\nhttps://www.home-assistant.io/lovelace/humidifier/#theme",
+      "view_layout": "Layout options for the view this card is in",
+      "features": "A list of features to customize the card.\nhttps://www.home-assistant.io/dashboards/humidifier/#features"
+    },
+    "iframe": {
+      "type": "The Webpage card allows you to embed your favorite webpage right into Home Assistant.\nhttps://www.home-assistant.io/lovelace/iframe/",
+      "aspect_ratio": "Height-width-ratio. Defaults to 50%.\nhttps://www.home-assistant.io/lovelace/iframe/#aspect_ratio",
+      "title": "The card title.\nhttps://www.home-assistant.io/lovelace/iframe/#title",
+      "url": "Website URL.\nhttps://www.home-assistant.io/lovelace/iframe/#url",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "light": {
+      "type": "The Light card allows you to change the brightness of the light.\nhttps://www.home-assistant.io/lovelace/light/",
+      "double_tap_action": "Action taken on card double tap.\nhttps://www.home-assistant.io/lovelace/light/#double_tap_action",
+      "entity": "Home Assistant Light Domain entity ID.\nhttps://www.home-assistant.io/lovelace/light/#entity",
+      "hold_action": "Action taken on card tap and hold.\nhttps://www.home-assistant.io/lovelace/light/#hold_action",
+      "icon": "Overwrites icon.\nhttps://www.home-assistant.io/lovelace/light/#icon",
+      "name": "Overwrites friendly name.\nhttps://www.home-assistant.io/lovelace/light/#name",
+      "tap_action": "The action taken on card tap.\nhttps://www.home-assistant.io/lovelace/light/#tap_action",
+      "theme": "Set to any theme within themes.yaml.\nhttps://www.home-assistant.io/lovelace/light/#theme",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "logbook": {
+      "type": "The Logbook card displays entries from the logbook for specific entities.\nhttps://www.home-assistant.io/lovelace/logbook/",
+      "entities": "The entities that will show in the card.\nhttps://www.home-assistant.io/lovelace/logbook/#entities",
+      "hours_to_show": "Number of hours in the past to track.\nhttps://www.home-assistant.io/lovelace/logbook/#hours_to_show",
+      "theme": "Set to any theme within themes.yaml.\nhttps://www.home-assistant.io/lovelace/logbook/#theme",
+      "title": "Title of the card.\nhttps://www.home-assistant.io/lovelace/logbook/#title",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "map": {
+      "type": "The Map card that allows you to display entities on a map.\nhttps://www.home-assistant.io/lovelace/map/",
+      "entities": "List of entity IDs. Either this or the geo_location_sources configuration option is required.\nhttps://www.home-assistant.io/lovelace/map/#entities",
+      "geo_location_sources": "List of geolocation sources. All current entities with that source will be displayed on the map. See Geolocation platform for valid sources. Set to all to use all available sources. Either this or the entities configuration option is required.\nhttps://www.home-assistant.io/lovelace/map/#geo_location_sources",
+      "title": "The card title.\nhttps://www.home-assistant.io/lovelace/map/#title",
+      "aspect_ratio": "Forces the height of the image to be a ratio of the width. You may enter a value such as: 16x9, 16:9, 1.78.\nhttps://www.home-assistant.io/lovelace/map/#aspect_ratio",
+      "default_zoom": "The default zoom level of the map.\nhttps://www.home-assistant.io/lovelace/map/#default_zoom",
+      "dark_mode": "Enable a dark theme for the map.\nhttps://www.home-assistant.io/lovelace/map/#dark_mode",
+      "hours_to_show": "Shows a path of previous locations. Hours to show as path on the map.\nhttps://www.home-assistant.io/lovelace/map/#hours_to_show",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "markdown": {
+      "type": "The Markdown card is used to render Markdown.\nhttps://www.home-assistant.io/lovelace/markdown/",
+      "content": "Content to render as Markdown. May contain templates.\nhttps://www.home-assistant.io/lovelace/markdown/#content",
+      "title": "The card title.\nhttps://www.home-assistant.io/lovelace/markdown/#title",
+      "card_size": "The algorithm for placing cards aesthetically in Lovelace may have problems with the Markdown card if it contains templates. You can use this value to help it estimate the height of the card in units of 50 pixels (approximately 3 lines of text in default size). (e.g., 4).\nhttps://www.home-assistant.io/lovelace/markdown/#card_size",
+      "theme": "Set to any theme within themes.yaml.",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "media-control": {
+      "type": "The Media Control card is used to display Media Player entities on an interface with easy to use controls.\nhttps://www.home-assistant.io/lovelace/media-control/",
+      "entity": "A media player entity_id.\nhttps://www.home-assistant.io/lovelace/media-control/#entity",
+      "name": "Overwrite friendly name.\nhttps://www.home-assistant.io/lovelace/media-control/#name",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "picture": {
+      "type": "The Picture card allows you to set an image to use for navigation to various paths in your interface or to call a service.\nhttps://www.home-assistant.io/lovelace/picture/",
+      "double_tap_action": "Action taken on card double tap.\nhttps://www.home-assistant.io/lovelace/picture/#double_tap_action",
+      "hold_action": "Action taken on card tap and hold.\nhttps://www.home-assistant.io/lovelace/picture/#hold_action",
+      "image": "The URL of an image.\nhttps://www.home-assistant.io/lovelace/picture/#image",
+      "tap_action": "The URL of an image.\nhttps://www.home-assistant.io/lovelace/picture/#tap_action",
+      "theme": "Set to any theme within themes.yaml.\nhttps://www.home-assistant.io/lovelace/picture/#theme",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "picture-elements": {
+      "type": "The cards allow you to position icons or text and even services on an image based on coordinates. Imagine floor plan, imagine picture-glance with no restrictions!\nhttps://www.home-assistant.io/lovelace/picture-elements/",
+      "camera_image": "A camera entity.\nhttps://www.home-assistant.io/lovelace/picture-elements/#camer_image",
+      "camera_view": "“live” will show the live view if stream is enabled.\nhttps://www.home-assistant.io/lovelace/picture-elements/#camera_view",
+      "dark_mode_filter": "This CSS filter is used when the dark mode is activated.\nhttps://www.home-assistant.io/lovelace/picture-elements/#dark_mode_filter",
+      "dark_mode_image": "This image is used when the dark mode is activated and no state image is set.\nhttps://www.home-assistant.io/lovelace/picture-elements/#dark_mode_image",
+      "elements": "List of elements.\nhttps://www.home-assistant.io/lovelace/picture-elements/#elements",
+      "image": "The URL of an image.\nhttps://www.home-assistant.io/lovelace/picture-elements/#image",
+      "state_filter": "State-based CSS filters.\nhttps://www.home-assistant.io/lovelace/picture-elements/#state_filter",
+      "theme": "Set to any theme within themes.yaml.\nhttps://www.home-assistant.io/lovelace/picture-elements/#theme",
+      "title": "Card title.\nhttps://www.home-assistant.io/lovelace/picture-elements/#title",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "picture-entity": {
+      "type": "The Picture Entity card displays an entity in the form of an image. Instead of images from URL, it can also show the picture of camera entities.\nhttps://www.home-assistant.io/lovelace/picture-entity/",
+      "aspect_ratio": "Forces the height of the image to be a ratio of the width. You may enter a value such as: 16x9, 16:9, 1.78.\nhttps://www.home-assistant.io/lovelace/picture-entity/#aspect_ratio",
+      "camera_image": "Camera entity_id to use. (not required if entity is already a camera-entity).\nhttps://www.home-assistant.io/lovelace/picture-entity/#camera_image",
+      "camera_view": "“live” will show the live view if stream is enabled.\nhttps://www.home-assistant.io/lovelace/picture-entity/#camera_view",
+      "double_tap_action": "Action taken on card double tap.\nhttps://www.home-assistant.io/lovelace/picture-entity/#double_tap_action",
+      "entity": "An entity_id used for the picture.\nhttps://www.home-assistant.io/lovelace/picture-entity/#entity",
+      "hold_action": "Action taken on card tap and hold.\nhttps://www.home-assistant.io/lovelace/picture-entity/#hold_action",
+      "image": "URL of an image.\nhttps://www.home-assistant.io/lovelace/picture-entity/#image",
+      "name": "Overwrite entity name.\nhttps://www.home-assistant.io/lovelace/picture-entity/#name",
+      "show_name": "Shows name in footer.\nhttps://www.home-assistant.io/lovelace/picture-entity/#show_name",
+      "show_state": "Shows state in footer.\nhttps://www.home-assistant.io/lovelace/picture-entity/#show_state",
+      "state_filter": "State-based CSS filters.\nhttps://www.home-assistant.io/lovelace/picture-entity/#how-to-use-state_filter",
+      "state_image": "Map entity states to images (state: image URL)\nhttps://www.home-assistant.io/lovelace/picture-entity/#state_image",
+      "tap_action": "Action taken on card tap.\nhttps://www.home-assistant.io/lovelace/picture-entity/#tap_action",
+      "theme": "Set to any theme within themes.yaml.\nhttps://www.home-assistant.io/lovelace/picture-entity/#theme",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "picture-glance": {
+      "type": "The Picture Glance card shows an image and corresponding entity states as an icon. The entities on the right side allow toggle actions, others show the more information dialog.\nhttps://www.home-assistant.io/lovelace/picture-glance/",
+      "aspect_ratio": "Forces the height of the image to be a ratio of the width. You may enter a value such as: 16x9, 16:9, 1.78.\nhttps://www.home-assistant.io/lovelace/picture-glance/#aspect_ratio",
+      "camera_image": "Camera entity as Background image.\nhttps://www.home-assistant.io/lovelace/picture-glance/#camera_image",
+      "camera_view": "“live” will show the live view if stream is enabled.\nhttps://www.home-assistant.io/lovelace/picture-glance/#camera_view",
+      "double_tap_action": "Action taken on card double tap.\nhttps://www.home-assistant.io/lovelace/picture-glance/#double_tap_action",
+      "entities": "List of entities or entity objects.\nhttps://www.home-assistant.io/lovelace/picture-glance/#entities",
+      "entity": "Entity to use for state_image and state_filter.\nhttps://www.home-assistant.io/lovelace/picture-glance/#entity",
+      "hold_action": "Action taken on card tap and hold.\nhttps://www.home-assistant.io/lovelace/picture-glance/#hold_action",
+      "image": "Background image URL.\nhttps://www.home-assistant.io/lovelace/picture-glance/#image",
+      "show_state": "Show entity state-text.\nhttps://www.home-assistant.io/lovelace/picture-glance/#show_state",
+      "state_filter": "State-based CSS filters.\nhttps://www.home-assistant.io/lovelace/picture-glance/#how-to-use-state_filter",
+      "state_image": "Background image based on entity state.\nhttps://www.home-assistant.io/lovelace/picture-glance/#state_image",
+      "tap_action": "Action taken on card tap.\nhttps://www.home-assistant.io/lovelace/picture-glance/#tap_action",
+      "theme": "Set to any theme within themes.yaml.\nhttps://www.home-assistant.io/lovelace/picture-glance/#theme",
+      "title": "The card title.\nhttps://www.home-assistant.io/lovelace/picture-glance/#title",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "plant-status": {
+      "type": "The Plant Status card is for all the lovely botanists out there.\nhttps://www.home-assistant.io/lovelace/plant-status/",
+      "entity": "Entity id of plant domain.\nhttps://www.home-assistant.io/lovelace/plant-status/#entity",
+      "name": "Overwrites Friendly Name.\nhttps://www.home-assistant.io/lovelace/plant-status/#name",
+      "theme": "Set to any theme within themes.yaml.\nhttps://www.home-assistant.io/lovelace/plant-status/#theme",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "sensor": {
+      "type": "The Sensor card gives you a quick overview of your sensors state with an optional graph to visualize change over time.\nhttps://www.home-assistant.io/lovelace/sensor/",
+      "detail": "Detail of the graph 1 or 2, 1 equals one point/hour, 2 equals six points/hour.\nhttps://www.home-assistant.io/lovelace/sensor/#detail",
+      "entity": "Entity id of sensor domain.\nhttps://www.home-assistant.io/lovelace/sensor/#entity",
+      "graph": "Type of graph none or line.\nhttps://www.home-assistant.io/lovelace/sensor/#graph",
+      "hours_to_show": "Hours to show in graph.\nhttps://www.home-assistant.io/lovelace/sensor/#entity",
+      "icon": "The card icon.\nhttps://www.home-assistant.io/lovelace/sensor/#icon",
+      "limits": "Limits of the graph Y-axis.\nhttps://www.home-assistant.io/lovelace/sensor/#limits",
+      "name": "The card name.\nhttps://www.home-assistant.io/lovelace/sensor/#name",
+      "theme": "Set to any theme within themes.yaml.\nhttps://www.home-assistant.io/lovelace/sensor/#theme",
+      "unit": "The unit of measurement.\nhttps://www.home-assistant.io/lovelace/sensor/#unit",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "shopping-list": {
+      "type": "The Shopping List card allows you to add, edit, check-off, and clear items from your shopping list.\nhttps://www.home-assistant.io/lovelace/shopping-list/",
+      "theme": "Set to any theme within themes.yaml.\nhttps://www.home-assistant.io/lovelace/shopping-list/#theme",
+      "title": "Title of Shopping List.\nhttps://www.home-assistant.io/lovelace/shopping-list/#title",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "statistics-graph": {
+      "type": "The Statistics Graph card allows you to display a graph of statistics data for each of the entities listed.\nhttps://www.home-assistant.io/lovelace/statistics-graph/",
+      "entities": "A list of entity IDs or entity objects.\nhttps://www.home-assistant.io/lovelace/statistics-graph/#entities",
+      "chart_type": "If the chart should be rendered as a bar or a line chart.\nhttps://www.home-assistant.io/lovelace/statistics-graph/#chart_type",
+      "days_to_show": "Days to show in graph. Minimum is 1 day.\nhttps://www.home-assistant.io/lovelace/statistics-graph/#days_to_show",
+      "period": "The period of the rendered graph.\nhttps://www.home-assistant.io/lovelace/statistics-graph/#period",
+      "stat_types": "The stat types to render. min, max, mean, sum.\nhttps://www.home-assistant.io/lovelace/statistics-graph/#stat_types",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "thermostat": {
+      "type": "The Thermostat card gives control of your climate entity, allowing you to change the temperature and mode of the entity.\nhttps://www.home-assistant.io/lovelace/thermostat/",
+      "entity": "Entity id of climate domain.\nhttps://www.home-assistant.io/lovelace/thermostat/#entity",
+      "name": "Overwrites friendly name.\nhttps://www.home-assistant.io/lovelace/thermostat/#name",
+      "theme": "Set to any theme within themes.yaml.\nhttps://www.home-assistant.io/lovelace/thermostat/#theme",
+      "view_layout": "Layout options for the view this card is in",
+      "features": "A list of features to customize the card.\nhttps://www.home-assistant.io/dashboards/thermostat/#features"
+    },
+    "tile": {
+      "type": "The tile card gives you a quick overview of your entity. The card allows you to toggle the entity and show the more info dialog.\nhttps://www.home-assistant.io/dashboards/tile/",
+      "color": "Set the color when the entity is active. By default, the color is based on state, domain, and device_class of your entity. It accepts color token or hex color code.\nhttps://www.home-assistant.io/dashboards/tile/#color",
+      "entity": "Entity to show in the tile card\nhttps://www.home-assistant.io/dashboards/tile/#entity",
+      "icon": "Overwrites icon.\nhttps://www.home-assistant.io/dashboards/tile/#icon",
+      "icon_tap_action": "Action taken on icon card tap. By default, it will toggle the entity (if possible), otherwise, show the “more-info” dialog.\nhttps://www.home-assistant.io/dashboards/tile/#icon_tap_action",
+      "name": "Overwrites friendly name.\nhttps://www.home-assistant.io/dashboards/tile/#name",
+      "show_entity_picture": "If your entity has a picture, it will replace the icon.\nttps://www.home-assistant.io/dashboards/tile/#show_entity_picture",
+      "tap_action": "Action taken on card tap. By default, it will show the “more-info” dialog.\nhttps://www.home-assistant.io/dashboards/tile/#tap_action"
+    },
+    "vertical-stack": {
+      "type": "The Vertical Stack card allows you to group multiple cards so they always sit in the same column.\nhttps://www.home-assistant.io/lovelace/vertical-stack/",
+      "cards": "List of cards.\nhttps://www.home-assistant.io/lovelace/vertical-stack/#cards",
+      "title": "Title of Stack.\nhttps://www.home-assistant.io/lovelace/vertical-stack/#title",
+      "view_layout": "Layout options for the view this card is in"
+    },
+    "weather-forecast": {
+      "type": "The Weather Forecast card displays the weather. Very useful to include on interfaces that people display on the wall.\nhttps://www.home-assistant.io/lovelace/weather-forecast/",
+      "entity": "The entity_id of the weather platform to use.\nhttps://www.home-assistant.io/lovelace/weather-forecast/#entity",
+      "name": "Overwrites the friendly name.\nhttps://www.home-assistant.io/lovelace/weather-forecast/#name",
+      "show_forecast": "Show next hours/days forecast.\nhttps://www.home-assistant.io/lovelace/weather-forecast/#show_forecast",
+      "secondary_info_attribute": "Which attribute to display under the temperature.\nhttps://www.home-assistant.io/lovelace/weather-forecast/#secondary_info_attribute",
+      "theme": "Set to any theme within themes.yaml.\nhttps://www.home-assistant.io/lovelace/weather-forecast/#theme",
+      "view_layout": "Layout options for the view this card is in"
+    }
+  },
+  "views": {
+    "background": "Style the background using CSS.\nhttps://www.home-assistant.io/lovelace/dashboards-and-views/#background",
+    "badges": "List of entities IDs or badge objects to display as badges. Note that badges do not show when view is in panel mode.\nhttps://www.home-assistant.io/lovelace/dashboards-and-views/#badges",
+    "cards": "Cards to display in this view.\nhttps://www.home-assistant.io/lovelace/dashboards-and-views/#cards",
+    "icon": "Icon-name from Material Design Icons.\nhttps://www.home-assistant.io/lovelace/dashboards-and-views/#icon",
+    "path": "You can link to one view from a card in another view when using cards that support navigation (navigation_path). The string supplied here will be appended to the string /lovelace/ to create the path to the view.\nhttps://www.home-assistant.io/lovelace/dashboards-and-views/#path",
+    "theme": "Set a separate theme for the view and its cards.\nhttps://www.home-assistant.io/lovelace/dashboards-and-views/#theme",
+    "title": "The title or name.\nhttps://www.home-assistant.io/lovelace/dashboards-and-views/#title",
+    "visible": "You can specify the visibility of views as a whole or per-user. (Note: This is only for the display of the tabs. The URL path is still accessible.)\nhttps://www.home-assistant.io/lovelace/dashboards-and-views/#visible",
+    "type": "The sections view arranges cards in a grid of sections, which can be grouped and rearranged in the dashboard editor.\nhttps://www.home-assistant.io/dashboards/sections/",
+    "sections": "The sections of the view, each holding a list of cards.\nhttps://www.home-assistant.io/dashboards/sections/#sections",
+    "max_columns": "The maximum number of section columns to display.\nhttps://www.home-assistant.io/dashboards/sections/#max_columns",
+    "dense_section_placement": "Fill gaps in the layout by moving sections up, even if this changes their order.\nhttps://www.home-assistant.io/dashboards/sections/#dense_section_placement"
+  },
+  "dashboard": {
+    "background": "Sets a background for this Lovelace dashboard.\nhttps://www.home-assistant.io/lovelace/dashboards-and-views/",
+    "views": "A list of view configurations.\nhttps://www.home-assistant.io/lovelace/dashboards-and-views/#views"
+  }
+}

@@ -3,4 +3,5 @@ dist
 node_modules
 .vscode-test/
 *.vsix
+scripts/.frontend
 src/language-service/src/schemas/json/*.json
