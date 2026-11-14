@@ -20,7 +20,7 @@ import { ScriptDefinitionProvider } from "../language-service/src/definition/scr
 import { SecretsDefinitionProvider } from "../language-service/src/definition/secrets.js"
 import { VsCodeFileAccessor } from "./fileAccessor.js"
 
-const connection = createConnection(ProposedFeatures.all, undefined, undefined)
+const connection = createConnection(ProposedFeatures.all)
 
 console.log = connection.console.log.bind(connection.console)
 console.warn = connection.window.showWarningMessage.bind(connection.window)
@@ -67,7 +67,7 @@ connection.onInitialize(async (params) => {
 
   const configurationService = new ConfigurationService()
   const haConnection = new HaConnection(configurationService)
-  const fileAccessor = new VsCodeFileAccessor(params.rootUri, documents)
+  const fileAccessor = new VsCodeFileAccessor(params.rootUri ?? "", documents)
   const haConfigInstance = new HomeAssistantConfiguration(fileAccessor)
 
   const definitionProviders = [
@@ -78,12 +78,12 @@ connection.onInitialize(async (params) => {
 
   const yamlLanguageService = getLanguageService({
     schemaRequestService: async () => "",
-    workspaceContext: null,
+    workspaceContext: { resolveRelativePath: (relativePath) => relativePath },
     telemetry: undefined
   })
 
   const sendDiagnostics = (uri: string, diagnostics: Diagnostic[]) => {
-    connection.sendDiagnostics({
+    void connection.sendDiagnostics({
       uri,
       diagnostics
     })
@@ -100,7 +100,7 @@ connection.onInitialize(async (params) => {
           (result): result is PromiseFulfilledResult<string> => result.status === "fulfilled"
         )
         .map((result) => result.value)
-      connection.sendNotification("ha_files_discovered", { files })
+      void connection.sendNotification("ha_files_discovered", { files })
     } catch (e) {
       console.error(`Failed to send the discovered files to the client: ${e}`)
     }
@@ -150,7 +150,7 @@ connection.onInitialize(async (params) => {
   // Setup handlers to notify client about connection status
   haConnection.onConnectionEstablished = (info) => {
     console.log("Home Assistant connection established, notifying client")
-    connection.sendNotification("ha_connected", info)
+    void connection.sendNotification("ha_connected", info)
     // Re-validate open documents now that registry data is available
     void (async () => {
       for (const d of documents.all()) {
@@ -166,7 +166,7 @@ connection.onInitialize(async (params) => {
 
   haConnection.onConnectionFailed = (error) => {
     console.log("Home Assistant connection failed, notifying client")
-    connection.sendNotification("ha_connection_error", { error: error || "Unknown error" })
+    void connection.sendNotification("ha_connection_error", { error: error || "Unknown error" })
   }
 
   if (configurationService.devMockConnection) {
@@ -275,7 +275,7 @@ connection.onInitialize(async (params) => {
     // Check configuration status after update
     if (!configurationService.isConfigured) {
       console.log("Configuration incomplete after update, sending no-config notification")
-      connection.sendNotification("no-config")
+      void connection.sendNotification("no-config")
     } else {
       console.log("Configuration is valid after update")
     }
@@ -283,18 +283,18 @@ connection.onInitialize(async (params) => {
 
   connection.onRequest(
     "callService",
-    (args: { domain: string; service: string; serviceData?: any }) => {
+    (args: { domain: string; service: string; serviceData?: unknown }) => {
       void haConnection.callService(args.domain, args.service, args.serviceData)
     }
   )
 
   connection.onRequest("checkConfig", async (_) => {
     const result = await haConnection.callApi("post", "config/core/check_config")
-    connection.sendNotification("configuration_check_completed", result)
+    void connection.sendNotification("configuration_check_completed", result)
   })
   connection.onRequest("getErrorLog", async (_) => {
     const result = await haConnection.callApi("get", "error_log")
-    connection.sendNotification("get_error_log_completed", result)
+    void connection.sendNotification("get_error_log_completed", result)
   })
   connection.onRequest("renderTemplate", async (args: { template: string }) => {
     const timePrefix = `[${new Date().toLocaleTimeString()}] `
@@ -308,15 +308,16 @@ connection.onInitialize(async (params) => {
 
       // Check if the result is an error object
       if (result && typeof result === "object") {
-        if (result.error) {
+        const resultObj = result as { error?: unknown; message?: unknown }
+        if (resultObj.error) {
           // Direct error message
-          outputString += `Error:\n${result.error}`
-        } else if (result.message) {
+          outputString += `Error:\n${resultObj.error}`
+        } else if (resultObj.message) {
           // Error message in message field
-          outputString += `Error:\n${result.message}`
-        } else if (Object.keys(result).length > 0) {
+          outputString += `Error:\n${resultObj.message}`
+        } else if (Object.keys(resultObj).length > 0) {
           // For other types of error objects, get a formatted representation
-          const errorMessage = JSON.stringify(result, null, 2)
+          const errorMessage = JSON.stringify(resultObj, null, 2)
           outputString += `Error:\n${errorMessage}`
         } else {
           // Just a string representation as fallback
@@ -338,7 +339,7 @@ connection.onInitialize(async (params) => {
         } catch {
           // If JSON conversion fails, try to extract properties
           if ("message" in error) {
-            errorMessage = error.message
+            errorMessage = String(error.message)
           } else if ("toString" in error && typeof error.toString === "function") {
             errorMessage = error.toString()
           }
@@ -350,7 +351,7 @@ connection.onInitialize(async (params) => {
       outputString += `Error:\n${errorMessage}`
     }
 
-    connection.sendNotification("render_template_completed", outputString)
+    void connection.sendNotification("render_template_completed", outputString)
   })
 
   // fire and forget

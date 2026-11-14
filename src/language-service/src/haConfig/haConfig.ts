@@ -80,13 +80,9 @@ export class HomeAssistantConfiguration {
   }
 
   public getIncludes = async (): Promise<IncludeReferences> => {
-    let results = []
-    for (const file of Object.values(this.files)) {
-      results.push(file.getIncludes())
-    }
-    results = await Promise.all(results)
+    const results = await Promise.all(Object.values(this.files).map((file) => file.getIncludes()))
 
-    let allIncludes = {}
+    let allIncludes: IncludeReferences = {}
     for (const result of results) {
       allIncludes = { ...allIncludes, ...result }
     }
@@ -94,13 +90,11 @@ export class HomeAssistantConfiguration {
   }
 
   public getScripts = async (): Promise<ScriptReferences> => {
-    let results = []
-    for (const filename of Object.keys(this.files)) {
-      results.push(this.files[filename].getScripts())
-    }
-    results = await Promise.all(results)
+    const results = await Promise.all(
+      Object.keys(this.files).map((filename) => this.files[filename].getScripts())
+    )
 
-    let allScripts = {}
+    let allScripts: ScriptReferences = {}
     for (const result of results) {
       allScripts = { ...allScripts, ...result }
     }
@@ -146,13 +140,11 @@ export class HomeAssistantConfiguration {
   public discoverFiles = async (): Promise<void> => {
     const rootFiles = await this.getRootFiles()
 
-    let results = []
-    for (const rootFile of rootFiles) {
-      results.push(
+    const results = await Promise.all(
+      rootFiles.map((rootFile) =>
         this.discoverCore(rootFile, rootFile.substring(this.subFolder.length), this.files)
       )
-    }
-    results = await Promise.all(results)
+    )
     const result = results.pop()
     if (result !== undefined) {
       this.files = result
@@ -204,7 +196,7 @@ export class HomeAssistantConfiguration {
       return files
     }
 
-    const results = []
+    const results: Promise<FilesCollection>[] = []
     for (const [filenameKey, include] of Object.entries(includes)) {
       if (Object.keys(files).some((x) => x === filenameKey)) {
         /// we already know this file

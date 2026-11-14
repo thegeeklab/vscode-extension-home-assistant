@@ -1,4 +1,5 @@
 import * as vscode from "vscode"
+import { LanguageClient } from "vscode-languageclient/node"
 import { CommandMappings } from "../extension.js"
 
 /**
@@ -10,7 +11,7 @@ import { CommandMappings } from "../extension.js"
 export function registerReloadCommands(
   context: vscode.ExtensionContext,
   commandMappings: CommandMappings[],
-  client: any
+  client: LanguageClient
 ): void {
   // Register each command mapping
   commandMappings
@@ -112,7 +113,9 @@ export async function showReloadIntegrations(commandMappings: CommandMappings[])
       await vscode.commands.executeCommand(selectedCommand.commandId)
     }
   } catch (error) {
-    vscode.window.showErrorMessage(`Error showing reload integrations: ${error.message}`)
+    vscode.window.showErrorMessage(
+      `Error showing reload integrations: ${error instanceof Error ? error.message : String(error)}`
+    )
   }
 }
 

@@ -200,8 +200,8 @@ export class EntityIdCompletionContribution implements JSONWorkerContribution {
 
     // Get device and area information for contextual display
     const deviceInfo = await this.getDeviceForEntity(entity.entity_id)
-    const areaName = deviceInfo ? await this.getAreaName(deviceInfo.area_id) : null
-    const floorName = deviceInfo ? await this.getFloorName(deviceInfo.area_id) : null
+    const areaName = deviceInfo ? await this.getAreaName(deviceInfo.area_id ?? undefined) : null
+    const floorName = deviceInfo ? await this.getFloorName(deviceInfo.area_id ?? undefined) : null
 
     // Add contextual information (device, area, floor) right after entity name
     if (areaName || floorName) {

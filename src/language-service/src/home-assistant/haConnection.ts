@@ -202,19 +202,19 @@ export interface IHaConnection {
 export class HaConnection implements IHaConnection {
   private connection: Connection | undefined
 
-  private hassAreas!: Promise<HassAreas>
+  private hassAreas?: Promise<HassAreas>
 
-  private hassDevices!: Promise<HassDevices>
+  private hassDevices?: Promise<HassDevices>
 
-  private hassEntities!: Promise<HassEntities>
+  private hassEntities?: Promise<HassEntities>
 
-  private hassEntityRegistry!: Promise<HassEntityRegistry>
+  private hassEntityRegistry?: Promise<HassEntityRegistry>
 
-  private hassFloors!: Promise<HassFloors>
+  private hassFloors?: Promise<HassFloors>
 
-  private hassLabels!: Promise<HassLabels>
+  private hassLabels?: Promise<HassLabels>
 
-  private hassServices!: Promise<HassServices>
+  private hassServices?: Promise<HassServices>
 
   // Cache the current entities to avoid memory churn from subscription updates
   private currentEntitiesCache: HassEntities | undefined
@@ -328,8 +328,9 @@ export class HaConnection implements IHaConnection {
       try {
         const configResponse = await this.callApi("get", "config")
         if (configResponse && typeof configResponse === "object") {
-          instanceName = configResponse.location_name
-          version = configResponse.version
+          const config = configResponse as { location_name?: string; version?: string }
+          instanceName = config.location_name
+          version = config.version
         }
       } catch (error) {
         console.log("Could not fetch Home Assistant instance name:", error)
@@ -609,13 +610,13 @@ export class HaConnection implements IHaConnection {
 
     // Reset connection state to force full reconnection
     this.connection = undefined
-    this.hassAreas = undefined as any
-    this.hassDevices = undefined as any
-    this.hassEntities = undefined as any
-    this.hassEntityRegistry = undefined as any
-    this.hassFloors = undefined as any
-    this.hassLabels = undefined as any
-    this.hassServices = undefined as any
+    this.hassAreas = undefined
+    this.hassDevices = undefined
+    this.hassEntities = undefined
+    this.hassEntityRegistry = undefined
+    this.hassFloors = undefined
+    this.hassLabels = undefined
+    this.hassServices = undefined
     resetSelectorDescriptionsState(this.triggerSelectorState)
     resetSelectorDescriptionsState(this.conditionSelectorState)
 
@@ -679,6 +680,10 @@ export class HaConnection implements IHaConnection {
               repacked_areas[area.area_id] = area
             })
             return resolve(repacked_areas)
+          })
+          .catch((error) => {
+            this.hassAreas = undefined
+            reject(error)
           })
       }
     )
@@ -748,6 +753,10 @@ export class HaConnection implements IHaConnection {
             })
             return resolve(repacked_floors)
           })
+          .catch((error) => {
+            this.hassFloors = undefined
+            reject(error)
+          })
       }
     )
     return this.hassFloors
@@ -808,6 +817,10 @@ export class HaConnection implements IHaConnection {
               repacked_devices[device.id] = device
             })
             return resolve(repacked_devices)
+          })
+          .catch((error) => {
+            this.hassDevices = undefined
+            reject(error)
           })
       }
     )
@@ -962,6 +975,10 @@ export class HaConnection implements IHaConnection {
             })
             return resolve(repacked_entities)
           })
+          .catch((error) => {
+            this.hassEntityRegistry = undefined
+            reject(error)
+          })
       }
     )
     return this.hassEntityRegistry
@@ -998,6 +1015,10 @@ export class HaConnection implements IHaConnection {
               repacked_labels[label.label_id] = label
             })
             return resolve(repacked_labels)
+          })
+          .catch((error) => {
+            this.hassLabels = undefined
+            reject(error)
           })
       }
     )
@@ -1213,8 +1234,8 @@ export class HaConnection implements IHaConnection {
 
     // Get device and area information for contextual display
     const deviceInfo = await this.getDeviceForEntity(entity.entity_id)
-    const areaName = deviceInfo ? await this.getAreaName(deviceInfo.area_id) : null
-    const floorName = deviceInfo ? await this.getFloorName(deviceInfo.area_id) : null
+    const areaName = deviceInfo ? await this.getAreaName(deviceInfo.area_id ?? undefined) : null
+    const floorName = deviceInfo ? await this.getFloorName(deviceInfo.area_id ?? undefined) : null
 
     // Add contextual information (device, area, floor) right after entity name
     if (areaName || floorName) {
@@ -1313,7 +1334,7 @@ export class HaConnection implements IHaConnection {
     }
 
     const entities = await this.getHassEntities()
-    let domains = []
+    let domains: string[] = []
 
     if (!entities) {
       return []
@@ -1615,7 +1636,11 @@ export class HaConnection implements IHaConnection {
     }
   }
 
-  public callApi = async (method: Method, api: string, requestBody?: any): Promise<any> => {
+  public callApi = async (
+    method: Method,
+    api: string,
+    requestBody?: unknown
+  ): Promise<unknown> => {
     if (this.configurationService.devMockConnection) {
       console.log(`Dev mock callApi ${method.toUpperCase()} ${api}`)
       if (api === "config" || api === "config/core/check_config") {
@@ -1626,7 +1651,7 @@ export class HaConnection implements IHaConnection {
         }
       }
       if (api === "template") {
-        return `(dev-mock template) ${requestBody?.template ?? ""}`
+        return `(dev-mock template) ${(requestBody as { template?: string } | undefined)?.template ?? ""}`
       }
       if (api === "error_log") {
         return "Dev mock mode: no error log available.\n"
@@ -1648,31 +1673,34 @@ export class HaConnection implements IHaConnection {
     } catch (error) {
       console.error(`Error calling API ${api}:`, error)
 
-      // Extract error information for better error messages
-      if (error.response) {
-        // The request was made and the server responded with a status code outside of 2xx range
-        console.error(`Response status: ${error.response.status}`)
-        console.error(`Response data:`, error.response.data)
+      if (axios.isAxiosError(error)) {
+        // The request was made and the server responded with a status code
+        // outside of the 2xx range.
+        if (error.response) {
+          console.error(`Response status: ${error.response.status}`)
+          console.error(`Response data:`, error.response.data)
 
-        // Return the error data to allow the caller to handle it
-        return error.response.data
-      } else if (error.request) {
-        // The request was made but no response was received
-        return { error: "No response received from Home Assistant" }
-      } else {
-        // Something happened in setting up the request
-        if (typeof error === "object" && error !== null) {
-          if (error.message) {
-            return { error: error.message }
-          }
-          try {
-            return { error: JSON.stringify(error) }
-          } catch {
-            return { error: "Unknown error occurred" }
-          }
+          // Return the error data to allow the caller to handle it
+          return error.response.data
         }
-        return { error: String(error) }
+        // The request was made but no response was received
+        if (error.request) {
+          return { error: "No response received from Home Assistant" }
+        }
       }
+
+      // Something happened in setting up the request
+      if (error instanceof Error) {
+        return { error: error.message }
+      }
+      if (typeof error === "object" && error !== null) {
+        try {
+          return { error: JSON.stringify(error) }
+        } catch {
+          return { error: String(error) }
+        }
+      }
+      return { error: String(error) }
     }
     return Promise.resolve("")
   }
@@ -1681,11 +1709,11 @@ export class HaConnection implements IHaConnection {
     domain: string,
     service: string,
 
-    serviceData: any
-  ): Promise<any> => {
+    serviceData?: unknown
+  ): Promise<void> => {
     if (this.configurationService.devMockConnection) {
       console.log(`Dev mock callService ${domain}.${service}`, serviceData ?? {})
-      return []
+      return
     }
 
     try {
@@ -1703,6 +1731,6 @@ export class HaConnection implements IHaConnection {
     } catch (error) {
       console.error(error)
     }
-    return Promise.resolve()
+    return
   }
 }

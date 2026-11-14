@@ -172,7 +172,7 @@ export class HomeAssistantLanguageService {
 
       this.diagnoseAllFiles()
     } catch (error) {
-      const { message } = error
+      const message = error instanceof Error ? error.message : String(error)
       console.error(`Unexpected error updating the schemas, message: ${message}`, error)
     }
     console.log("Schemas updated!")
@@ -1783,7 +1783,7 @@ export class HomeAssistantLanguageService {
     return diagnostics
   }
 
-  public onDocumentSymbol = (document: TextDocument): SymbolInformation[] => {
+  public onDocumentSymbol = (document: TextDocument | undefined): SymbolInformation[] => {
     if (!document) {
       return []
     }
@@ -1792,7 +1792,7 @@ export class HomeAssistantLanguageService {
   }
 
   public onDocumentFormatting = async (
-    document: TextDocument,
+    document: TextDocument | undefined,
     options: FormattingOptions
   ): Promise<TextEdit[]> => {
     if (!document) {
@@ -1813,7 +1813,7 @@ export class HomeAssistantLanguageService {
   }
 
   public onCompletion = async (
-    textDocument: TextDocument,
+    textDocument: TextDocument | undefined,
     position: Position
   ): Promise<CompletionList> => {
     const emptyResult: CompletionList = {
@@ -1865,7 +1865,10 @@ export class HomeAssistantLanguageService {
     return completionItem
   }
 
-  public onHover = async (document: TextDocument, position: Position): Promise<Hover | null> => {
+  public onHover = async (
+    document: TextDocument | undefined,
+    position: Position
+  ): Promise<Hover | null> => {
     if (!document) {
       return null
     }
@@ -2645,7 +2648,7 @@ export class HomeAssistantLanguageService {
   }
 
   public onDefinition = async (
-    textDocument: TextDocument,
+    textDocument: TextDocument | undefined,
     position: Position
   ): Promise<Definition | DefinitionLink[] | undefined> => {
     if (!textDocument) {
@@ -2656,11 +2659,9 @@ export class HomeAssistantLanguageService {
     const end: number = lineOffsets[position.line + 1]
     const thisLine = textDocument.getText().substring(start, end)
 
-    let results = []
-    for (const provider of this.definitionProviders) {
-      results.push(provider.onDefinition(thisLine, textDocument.uri))
-    }
-    results = await Promise.all(results)
+    const results = await Promise.all(
+      this.definitionProviders.map((provider) => provider.onDefinition(thisLine, textDocument.uri))
+    )
 
     let definitions: any = []
     for (const result of results) {

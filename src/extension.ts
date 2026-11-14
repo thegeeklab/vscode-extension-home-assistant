@@ -155,7 +155,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       }
 
       // Update status bar to show disconnected state
-      statusBar.checkConnectionStatus()
+      void statusBar.checkConnectionStatus()
     })
   )
 
@@ -316,6 +316,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   context.subscriptions.push(
     vscode.commands.registerCommand("home-assistant.renderTemplate", async () => {
       const editor = vscode.window.activeTextEditor
+      if (!editor) {
+        return
+      }
       const selectedText = editor.document.getText(editor.selection)
       await client.sendRequest("renderTemplate", { template: selectedText })
     })
@@ -333,7 +336,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     vscode.commands.registerCommand("home-assistant.manageAuth", async () => {
       await manageAuth(context)
       // Update status bar after auth changes
-      statusBar.checkConnectionStatus()
+      void statusBar.checkConnectionStatus()
     })
   )
 
@@ -347,7 +350,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     vscode.commands.registerCommand("home-assistant.repairAuth", async () => {
       await repairAuthConfiguration(context)
       // Update status bar after repair
-      statusBar.checkConnectionStatus()
+      void statusBar.checkConnectionStatus()
     })
   )
 
@@ -356,7 +359,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     vscode.commands.registerCommand("home-assistant.testConnection", async () => {
       await testConnection(context)
       // Update status bar after connection test
-      statusBar.checkConnectionStatus()
+      void statusBar.checkConnectionStatus()
     })
   )
 
@@ -367,7 +370,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
       if (haConfigChanged) {
         console.log("Home Assistant configuration changed, updating status bar")
-        statusBar.checkConnectionStatus()
+        void statusBar.checkConnectionStatus()
       }
     })
   )
@@ -390,7 +393,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }, 1000)
   } else {
     // Check status bar connection if we have credentials
-    statusBar.checkConnectionStatus()
+    void statusBar.checkConnectionStatus()
   }
 }
 
