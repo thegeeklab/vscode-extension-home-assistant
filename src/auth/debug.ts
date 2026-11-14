@@ -113,7 +113,9 @@ export async function debugAuthSettings(context: vscode.ExtensionContext): Promi
           debugPanel.appendLine("Token does not contain an expiration date (exp claim).")
         }
       } catch (error) {
-        debugPanel.appendLine(`Error decoding JWT token: ${error.message}`)
+        debugPanel.appendLine(
+          `Error decoding JWT token: ${error instanceof Error ? error.message : String(error)}`
+        )
       }
     } else {
       debugPanel.appendLine("Token appears to be a long-lived access token (not JWT format).")
@@ -174,7 +176,9 @@ export async function debugAuthSettings(context: vscode.ExtensionContext): Promi
                 debugPanel.appendLine("❌ Connection successful, but API response was unexpected.")
               }
             } catch (e) {
-              debugPanel.appendLine(`Error parsing response as JSON: ${e.message}`)
+              debugPanel.appendLine(
+                `Error parsing response as JSON: ${e instanceof Error ? e.message : String(e)}`
+              )
               debugPanel.appendLine(`Raw response body: ${body}`)
             }
             debugPanel.show()
@@ -206,7 +210,9 @@ export async function debugAuthSettings(context: vscode.ExtensionContext): Promi
 
       request.end()
     } catch (error) {
-      debugPanel.appendLine(`❌ Error during connection test setup: ${error.message}`)
+      debugPanel.appendLine(
+        `❌ Error during connection test setup: ${error instanceof Error ? error.message : String(error)}`
+      )
       debugPanel.show()
     }
   } else if (!activeUrl) {
@@ -355,7 +361,10 @@ export async function testHomeAssistantConnection(
                 })
               }
             } catch (e) {
-              console.log("Failed to parse JSON response:", e.message)
+              console.log(
+                "Failed to parse JSON response:",
+                e instanceof Error ? e.message : String(e)
+              )
               resolve({
                 success: true,
                 message: "API connection successful, but response wasn't valid JSON"
