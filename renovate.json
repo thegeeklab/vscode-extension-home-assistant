@@ -2,6 +2,18 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["github>thegeeklab/renovate-presets"],
   "postUpdateOptions": ["npmInstallTwice"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["^scripts/schema/frontend\\.ts$"],
+      "matchStrings": [
+        "FRONTEND_REF\\s*=\\s*process\\.env\\.FRONTEND_REF\\s*\\?\\?\\s*\"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "home-assistant/frontend",
+      "datasourceTemplate": "github-tags",
+      "versioningTemplate": "regex:^(?<major>\\d{8})\\.(?<build>\\d+)$"
+    }
+  ],
   "packageRules": [
     {
       "description": "Group vscode-languageserver-node monorepo packages into one",
@@ -20,6 +32,12 @@
     {
       "matchPackageNames": ["@types/vscode"],
       "enabled": false
+    },
+    {
+      "description": "Pin the home-assistant/frontend release used for Lovelace schema generation",
+      "matchPackageNames": ["home-assistant/frontend"],
+      "groupName": "home-assistant frontend",
+      "separateMajorMinor": false
     }
   ]
 }

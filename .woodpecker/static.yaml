@@ -51,6 +51,24 @@ steps:
     commands:
       - npm run check-types
 
+  - name: check-types-scripts
+    image: docker.io/library/node:26
+    depends_on: [deps]
+    commands:
+      - npm run check-types:scripts
+
+  - name: schema-check
+    image: docker.io/library/node:26
+    depends_on: [deps]
+    commands:
+      - npm run schema:check
+
+  - name: test-schema
+    image: docker.io/library/node:26
+    depends_on: [deps]
+    commands:
+      - npm run test:schema
+
   - name: lint
     image: docker.io/library/node:26
     depends_on: [deps]

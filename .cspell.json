@@ -95,7 +95,8 @@
     "uuidv",
     "weblink",
     "Weblink",
-    "webostv"
+    "webostv",
+    "bareword"
   ],
   "ignorePaths": [
     ".cspell.json",
@@ -111,6 +112,9 @@
     "out",
     "syntaxes",
     "test/fixtures",
+    "scripts/.frontend",
+    "scripts/schema/lovelace-descriptions.json",
+    "scripts/schema/types",
     "src/language-service/src/schemas",
     "src/language-service/src/types",
     "src/snippets"

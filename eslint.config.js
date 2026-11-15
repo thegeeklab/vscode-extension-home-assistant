@@ -5,7 +5,7 @@ import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended"
 
 export default [
   {
-    ignores: ["out/**", "dist/**", "node_modules/**", ".vscode-test/**"]
+    ignores: ["out/**", "dist/**", "node_modules/**", ".vscode-test/**", "scripts/.frontend/**"]
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
@@ -48,7 +48,7 @@ export default [
     }
   },
   {
-    files: ["src/**/*.ts", "test/**/*.ts"],
+    files: ["src/**/*.ts", "test/**/*.ts", "scripts/**/*.ts"],
     languageOptions: {
       parserOptions: {
         projectService: true,
@@ -64,9 +64,17 @@ export default [
   },
   {
     // Generated JSON-schema typings: `any` is expected here.
-    files: ["src/language-service/src/schemas/**/*.ts"],
+    files: ["src/language-service/src/schemas/**/*.ts", "scripts/schema/types/**/*.ts"],
     rules: {
       "@typescript-eslint/no-explicit-any": "off"
+    }
+  },
+  {
+    // `node:test` schedules tests and returns a thenable that the runner, not
+    // the test body, awaits.
+    files: ["scripts/schema/*.test.ts"],
+    rules: {
+      "@typescript-eslint/no-floating-promises": "off"
     }
   },
   eslintPluginPrettierRecommended,
