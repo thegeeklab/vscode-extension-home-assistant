@@ -196,7 +196,7 @@ export async function createMockLanguageService(
   const haConfig = new HomeAssistantConfiguration(fileAccessor as any)
   const yamlLanguageService = getLanguageService({
     schemaRequestService: async () => "",
-    workspaceContext: null,
+    workspaceContext: { resolveRelativePath: (relativePath) => relativePath },
     telemetry: undefined
   })
 

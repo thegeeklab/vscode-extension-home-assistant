@@ -49,9 +49,24 @@ export default [
   },
   {
     files: ["src/**/*.ts", "test/**/*.ts"],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname
+      }
+    },
     rules: {
-      "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }]
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-floating-promises": "error",
+      "@typescript-eslint/await-thenable": "error"
+    }
+  },
+  {
+    // Generated JSON-schema typings: `any` is expected here.
+    files: ["src/language-service/src/schemas/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off"
     }
   },
   eslintPluginPrettierRecommended,

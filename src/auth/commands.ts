@@ -106,7 +106,7 @@ async function setToken(context: vscode.ExtensionContext): Promise<void> {
       )
     } catch (error) {
       vscode.window.showErrorMessage(
-        `Failed to store Home Assistant instance URL: ${error.message}`
+        `Failed to store Home Assistant instance URL: ${error instanceof Error ? error.message : String(error)}`
       )
       return // Don't proceed to token if URL failed
     }
@@ -128,7 +128,9 @@ async function setToken(context: vscode.ExtensionContext): Promise<void> {
       }
       vscode.window.showInformationMessage("Home Assistant token has been securely stored.")
     } catch (error) {
-      vscode.window.showErrorMessage(`Failed to store token: ${error.message}`)
+      vscode.window.showErrorMessage(
+        `Failed to store token: ${error instanceof Error ? error.message : String(error)}`
+      )
     }
   } else {
     vscode.window.showWarningMessage("No token was entered.")
@@ -147,7 +149,9 @@ async function clearToken(context: vscode.ExtensionContext): Promise<void> {
       await AuthManager.deleteToken(context)
       vscode.window.showInformationMessage("Home Assistant token has been cleared.")
     } catch (error) {
-      vscode.window.showErrorMessage(`Failed to clear token: ${error.message}`)
+      vscode.window.showErrorMessage(
+        `Failed to clear token: ${error instanceof Error ? error.message : String(error)}`
+      )
     }
   }
 }
@@ -313,7 +317,7 @@ async function setInstanceUrl(context: vscode.ExtensionContext): Promise<void> {
       )
     } catch (error) {
       vscode.window.showErrorMessage(
-        `Failed to store Home Assistant instance URL: ${error.message}`
+        `Failed to store Home Assistant instance URL: ${error instanceof Error ? error.message : String(error)}`
       )
     }
   } else if (!newUrl) {
@@ -336,7 +340,7 @@ async function clearInstanceUrl(context: vscode.ExtensionContext): Promise<void>
       vscode.window.showInformationMessage("Home Assistant instance URL has been cleared.")
     } catch (error) {
       vscode.window.showErrorMessage(
-        `Failed to clear Home Assistant instance URL: ${error.message}`
+        `Failed to clear Home Assistant instance URL: ${error instanceof Error ? error.message : String(error)}`
       )
     }
   }

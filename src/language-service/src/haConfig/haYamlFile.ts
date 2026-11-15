@@ -161,7 +161,7 @@ export class HomeAssistantYamlFile {
 
   private getKeyName = (node: Scalar): string => {
     if (node.tag && node.type === "PLAIN") {
-      return node.value.toString().slice(7, -1)
+      return String(node.value).slice(7, -1)
     }
 
     return node.toJSON()
@@ -198,7 +198,7 @@ export class HomeAssistantYamlFile {
       return
     }
 
-    const value: null | boolean | number | string = x.value.toString().replace(/\\/g, "/") // \ to / on windows
+    const value = String(x.value).replace(/\\/g, "/") // \ to / on windows
 
     let files: string[] = []
 
@@ -233,8 +233,8 @@ export class HomeAssistantYamlFile {
       this.includes[key] = {
         path: currentPath,
         includeType,
-        start: x.range[0],
-        end: x.range[1]
+        start: x.range?.[0] ?? 0,
+        end: x.range?.[1] ?? 0
       }
     }
   }

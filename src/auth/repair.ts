@@ -86,7 +86,9 @@ export async function repairAuthConfiguration(context: vscode.ExtensionContext):
       )
     }
   } catch (error) {
-    vscode.window.showErrorMessage(`Failed to repair auth configuration: ${error.message}`)
+    vscode.window.showErrorMessage(
+      `Failed to repair auth configuration: ${error instanceof Error ? error.message : String(error)}`
+    )
   } finally {
     statusBar.dispose()
   }

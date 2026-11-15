@@ -125,7 +125,7 @@ export class HomeAssistantStatusBar {
     } catch (error) {
       console.error("Error opening Home Assistant in browser:", error)
       vscode.window.showErrorMessage(
-        `Failed to open Home Assistant: ${error.message || "Unknown error"}`
+        `Failed to open Home Assistant: ${error instanceof Error ? error.message : "Unknown error"}`
       )
     }
   }

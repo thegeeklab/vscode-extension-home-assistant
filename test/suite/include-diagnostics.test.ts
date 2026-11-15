@@ -13,7 +13,7 @@ suite("Include Diagnostics Filter Tests", () => {
   setup(async () => {
     yamlLanguageService = getLanguageService({
       schemaRequestService: async () => "",
-      workspaceContext: null,
+      workspaceContext: { resolveRelativePath: (relativePath) => relativePath },
       telemetry: undefined
     })
 

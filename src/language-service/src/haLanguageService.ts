@@ -172,7 +172,7 @@ export class HomeAssistantLanguageService {
 
       this.diagnoseAllFiles()
     } catch (error) {
-      const { message } = error
+      const message = error instanceof Error ? error.message : String(error)
       console.error(`Unexpected error updating the schemas, message: ${message}`, error)
     }
     console.log("Schemas updated!")
@@ -443,27 +443,25 @@ export class HomeAssistantLanguageService {
           let match
 
           while ((match = propertyRegex.exec(line)) !== null) {
+            if (line.substring(0, match.index!).includes("#")) {
+              continue
+            }
             const entityValue = match[1].trim()
 
-            // Remove quotes if present
             const cleanEntityValue = entityValue.replace(/^["']|["']$/g, "")
 
-            // Skip template entities (containing {{ }})
             if (cleanEntityValue.includes("{{") || cleanEntityValue.includes("}}")) {
               continue
             }
 
-            // Skip entities that are variables or templates
             if (cleanEntityValue.startsWith("!")) {
               continue
             }
 
-            // Check if this looks like an entity ID (domain.entity format)
             if (!/^[a-z_]+\.[a-z0-9_]+$/.test(cleanEntityValue)) {
               continue
             }
 
-            // Check if entity exists in Home Assistant
             if (!entityIds.includes(cleanEntityValue)) {
               console.log(
                 `Entity validation: Found unknown entity '${cleanEntityValue}' at line ${lineIndex + 1}`
@@ -473,7 +471,7 @@ export class HomeAssistantLanguageService {
               const diagnosticDetails = getEntityDiagnosticDetails(cleanEntityValue)
 
               const diagnostic: Diagnostic = {
-                severity: 2, // Warning
+                severity: 2,
                 range: Range.create(lineIndex, startColumn, lineIndex, endColumn),
                 message: diagnosticDetails.message,
                 source: "home-assistant",
@@ -484,11 +482,13 @@ export class HomeAssistantLanguageService {
             }
           }
 
-          // Also check for entity arrays (entity_id: [entity1, entity2])
           const arrayPropertyRegex = new RegExp(`\\s*${propertyName}\\s*:\\s*\\[([^\\]]+)\\]`, "g")
           let arrayMatch
 
           while ((arrayMatch = arrayPropertyRegex.exec(line)) !== null) {
+            if (line.substring(0, arrayMatch.index!).includes("#")) {
+              continue
+            }
             const [, entitiesInArray] = arrayMatch
             const entityArray = entitiesInArray
               .split(",")
@@ -623,9 +623,11 @@ export class HomeAssistantLanguageService {
           let match
 
           while ((match = propertyRegex.exec(line)) !== null) {
+            if (line.substring(0, match.index!).includes("#")) {
+              continue
+            }
             const areaValue = match[1].trim()
 
-            // Remove quotes if present
             const cleanAreaValue = areaValue.replace(/^["']|["']$/g, "")
 
             // Skip template areas (containing {{ }})
@@ -679,6 +681,9 @@ export class HomeAssistantLanguageService {
           let arrayMatch
 
           while ((arrayMatch = arrayPropertyRegex.exec(line)) !== null) {
+            if (line.substring(0, arrayMatch.index!).includes("#")) {
+              continue
+            }
             const [, areasInArray] = arrayMatch
             const areaArray = areasInArray
               .split(",")
@@ -831,9 +836,11 @@ export class HomeAssistantLanguageService {
           let match
 
           while ((match = propertyRegex.exec(line)) !== null) {
+            if (line.substring(0, match.index!).includes("#")) {
+              continue
+            }
             const deviceValue = match[1].trim()
 
-            // Remove quotes if present
             const cleanDeviceValue = deviceValue.replace(/^["']|["']$/g, "")
 
             // Skip template devices (containing {{ }})
@@ -887,6 +894,9 @@ export class HomeAssistantLanguageService {
           let arrayMatch
 
           while ((arrayMatch = arrayPropertyRegex.exec(line)) !== null) {
+            if (line.substring(0, arrayMatch.index!).includes("#")) {
+              continue
+            }
             const [, devicesInArray] = arrayMatch
             const deviceArray = devicesInArray
               .split(",")
@@ -1039,9 +1049,11 @@ export class HomeAssistantLanguageService {
           let match
 
           while ((match = propertyRegex.exec(line)) !== null) {
+            if (line.substring(0, match.index!).includes("#")) {
+              continue
+            }
             const floorValue = match[1].trim()
 
-            // Remove quotes if present
             const cleanFloorValue = floorValue.replace(/^["']|["']$/g, "")
 
             // Skip template floors (containing {{ }})
@@ -1095,6 +1107,9 @@ export class HomeAssistantLanguageService {
           let arrayMatch
 
           while ((arrayMatch = arrayPropertyRegex.exec(line)) !== null) {
+            if (line.substring(0, arrayMatch.index!).includes("#")) {
+              continue
+            }
             const [, floorsInArray] = arrayMatch
             const floorArray = floorsInArray
               .split(",")
@@ -1243,6 +1258,9 @@ export class HomeAssistantLanguageService {
         let match
 
         while ((match = secretRegex.exec(line)) !== null) {
+          if (line.substring(0, match.index!).includes("#")) {
+            continue
+          }
           const secretName = match[1].trim()
 
           // Check if secret exists in secrets.yaml
@@ -1362,9 +1380,11 @@ export class HomeAssistantLanguageService {
           let match
 
           while ((match = propertyRegex.exec(line)) !== null) {
+            if (line.substring(0, match.index!).includes("#")) {
+              continue
+            }
             const labelValue = match[1].trim()
 
-            // Remove quotes if present
             const cleanLabelValue = labelValue.replace(/^["']|["']$/g, "")
 
             // Skip template labels (containing {{ }})
@@ -1423,6 +1443,9 @@ export class HomeAssistantLanguageService {
           let arrayMatch
 
           while ((arrayMatch = arrayPropertyRegex.exec(line)) !== null) {
+            if (line.substring(0, arrayMatch.index!).includes("#")) {
+              continue
+            }
             const [, labelsInArray] = arrayMatch
             const labelArray = labelsInArray
               .split(",")
@@ -1600,6 +1623,9 @@ export class HomeAssistantLanguageService {
           let match
 
           while ((match = propertyRegex.exec(line)) !== null) {
+            if (line.substring(0, match.index!).includes("#")) {
+              continue
+            }
             const actionValue = match[1].trim()
 
             // Remove quotes if present
@@ -1783,7 +1809,7 @@ export class HomeAssistantLanguageService {
     return diagnostics
   }
 
-  public onDocumentSymbol = (document: TextDocument): SymbolInformation[] => {
+  public onDocumentSymbol = (document: TextDocument | undefined): SymbolInformation[] => {
     if (!document) {
       return []
     }
@@ -1792,7 +1818,7 @@ export class HomeAssistantLanguageService {
   }
 
   public onDocumentFormatting = async (
-    document: TextDocument,
+    document: TextDocument | undefined,
     options: FormattingOptions
   ): Promise<TextEdit[]> => {
     if (!document) {
@@ -1813,7 +1839,7 @@ export class HomeAssistantLanguageService {
   }
 
   public onCompletion = async (
-    textDocument: TextDocument,
+    textDocument: TextDocument | undefined,
     position: Position
   ): Promise<CompletionList> => {
     const emptyResult: CompletionList = {
@@ -1865,7 +1891,10 @@ export class HomeAssistantLanguageService {
     return completionItem
   }
 
-  public onHover = async (document: TextDocument, position: Position): Promise<Hover | null> => {
+  public onHover = async (
+    document: TextDocument | undefined,
+    position: Position
+  ): Promise<Hover | null> => {
     if (!document) {
       return null
     }
@@ -2645,7 +2674,7 @@ export class HomeAssistantLanguageService {
   }
 
   public onDefinition = async (
-    textDocument: TextDocument,
+    textDocument: TextDocument | undefined,
     position: Position
   ): Promise<Definition | DefinitionLink[] | undefined> => {
     if (!textDocument) {
@@ -2656,11 +2685,9 @@ export class HomeAssistantLanguageService {
     const end: number = lineOffsets[position.line + 1]
     const thisLine = textDocument.getText().substring(start, end)
 
-    let results = []
-    for (const provider of this.definitionProviders) {
-      results.push(provider.onDefinition(thisLine, textDocument.uri))
-    }
-    results = await Promise.all(results)
+    const results = await Promise.all(
+      this.definitionProviders.map((provider) => provider.onDefinition(thisLine, textDocument.uri))
+    )
 
     let definitions: any = []
     for (const result of results) {

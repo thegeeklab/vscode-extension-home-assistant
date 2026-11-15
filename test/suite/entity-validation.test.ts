@@ -115,7 +115,7 @@ automation:
     const diagnostics = await waitForDiagnostics(
       document,
       (ds) => ds.some((d) => d.source === "home-assistant" && d.code === "unknown-entity"),
-      { message: "entity diagnostics for comment test" }
+      { message: "entity diagnostics for comment test", settleMs: 500 }
     )
 
     // Check that commented entity IDs don't generate diagnostics
@@ -128,7 +128,10 @@ automation:
     // Verify that only non-commented entity IDs generate diagnostics
     for (const diagnostic of entityDiagnostics) {
       const line = document.lineAt(diagnostic.range.start.line).text
-      assert.ok(!line.trim().startsWith("#"), `Diagnostic found on commented line: ${line.trim()}`)
+      assert.ok(
+        !line.trim().startsWith("#"),
+        `Diagnostic found on commented line: ${line.trim()} (code: ${diagnostic.code}, message: ${diagnostic.message})`
+      )
     }
 
     // Close the document

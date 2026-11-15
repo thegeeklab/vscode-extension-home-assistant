@@ -36,12 +36,11 @@ export class VsCodeFileAccessor implements FileAccessor {
     try {
       const result = await fs.readFile(absoluteUri, "utf-8")
       return result
-    } catch (err: any) {
-      if (err.code === "ENOENT") {
-        return null
-      } else {
-        throw err
+    } catch (err) {
+      if (err instanceof Error && "code" in err && err.code === "ENOENT") {
+        return ""
       }
+      throw err
     }
   }
 
