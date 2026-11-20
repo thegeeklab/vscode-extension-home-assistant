@@ -44,6 +44,10 @@ export function generateLovelaceSchemas(strict: boolean): number {
     body["required"] = required
 
     applyDescriptions(properties, descriptions.cards[card.type])
+    // Well-known third-party keys that can be attached to any card (card-mod
+    // styles). Home Assistant itself ignores unknown keys, so accept them here
+    // to avoid false positives while keeping standard card keys strict.
+    properties["card_mod"] = {}
     generatedCardProps.set(card.type, new Set(Object.keys(properties)))
 
     emitter.getDefinitions()[defName] = body
@@ -64,9 +68,11 @@ export function generateLovelaceSchemas(strict: boolean): number {
   // The full card union, referenced by nested `card`/`cards` properties.
   emitter.getDefinitions()["Card"] = { anyOf: cardRefs }
 
+  // A cards file may contain a single card or a list of cards (e.g. the
+  // contents of a `!include_dir_merge_list` folder).
   writeSchema("lovelace-cards.json", {
     $schema: "http://json-schema.org/draft-07/schema#",
-    anyOf: cardRefs,
+    anyOf: [...cardRefs, { type: "array", items: { $ref: "#/definitions/Card" } }],
     definitions: emitter.getDefinitions()
   })
 
@@ -80,15 +86,30 @@ export function generateLovelaceSchemas(strict: boolean): number {
     if (viewDef) {
       const viewProps = viewDef["properties"] as Record<string, SchemaNode>
       for (const prop of Object.keys(viewProps)) generatedViewProps.add(prop)
-      viewProps["type"] = {
-        anyOf: [{ enum: viewTypes }, { type: "string", pattern: "^custom:" }]
-      }
+      viewProps["type"] = { enum: viewTypes }
       generatedViewProps.add("type")
       applyDescriptions(viewProps, descriptions.views)
+
+      // Custom views (type: "custom:*") accept arbitrary properties, matching
+      // the permissive CustomView schema this replaces. yaml-language-server's
+      // JSON Schema validator has no if/then/else support, so emit a permissive
+      // sibling definition instead of a conditional.
+      emitter.getDefinitions()["CustomViewConfig"] = {
+        type: "object",
+        properties: {
+          ...viewProps,
+          type: { type: "string", pattern: "^custom:" }
+        },
+        required: ["type"],
+        additionalProperties: true
+      }
     }
     writeSchema("lovelace-views.json", {
       $schema: "http://json-schema.org/draft-07/schema#",
-      $ref: `#/definitions/${VIEW_CONFIG}`,
+      anyOf: [
+        { $ref: `#/definitions/${VIEW_CONFIG}` },
+        { $ref: "#/definitions/CustomViewConfig" }
+      ],
       definitions: emitter.getDefinitions()
     })
   } else {
@@ -104,6 +125,13 @@ export function generateLovelaceSchemas(strict: boolean): number {
     if (dashboardDef) {
       const dashboardProps = dashboardDef["properties"] as Record<string, SchemaNode>
       for (const prop of Object.keys(dashboardProps)) generatedDashboardProps.add(prop)
+      // Dashboards accept arbitrary top-level keys (title, resources,
+      // decluttering_templates, ...).
+      dashboardDef["additionalProperties"] = true
+      // `title` is honored by Home Assistant but absent from the upstream
+      // LovelaceConfig type; it was part of the previous hand-written schema.
+      dashboardProps["title"] = { type: "string" }
+      generatedDashboardProps.add("title")
       applyDescriptions(dashboardProps, descriptions.dashboard)
     }
     writeSchema("lovelace-dashboard.json", {
