@@ -5,7 +5,7 @@ import { dirname, join, resolve } from "node:path"
 export const FRONTEND_REPO = "https://github.com/home-assistant/frontend.git"
 // Pinned to a release tag (managed by Renovate, see renovate.json) so schema
 // generation and the stale-description CI gate are deterministic.
-export const FRONTEND_REF = process.env.FRONTEND_REF ?? "20261028.6"
+export const FRONTEND_REF = process.env.FRONTEND_REF ?? "20261028.8"
 export const FRONTEND_PATH = resolve(
   process.env.FRONTEND_PATH ?? join(import.meta.dirname, "..", ".frontend")
 )
