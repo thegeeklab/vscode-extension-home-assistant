@@ -2755,13 +2755,13 @@ export class HomeAssistantLanguageService {
     properties.triggers = SelectorCompletionContribution.triggerPropertyMatches
     properties.conditions = SelectorCompletionContribution.conditionPropertyMatches
 
-    const additionalCompletionProvider = this.findAutoCompletionProperty(
+    const completionContext = this.findAutoCompletionProperty(
       document,
       textDocumentPosition,
       properties
     )
     let additionalCompletion: CompletionItem[] = []
-    switch (additionalCompletionProvider) {
+    switch (completionContext?.provider) {
       case "areas":
         if (!currentCompletions.items.some((x) => x.data && x.data.isArea)) {
           additionalCompletion = await this.haConnection.getAreaCompletions()
@@ -2772,6 +2772,15 @@ export class HomeAssistantLanguageService {
 
         if (!currentCompletions.items.some((x) => x.data && x.data.isEntity)) {
           additionalCompletion = await this.haConnection.getEntityCompletions()
+          // When entity ids are used as mapping keys, insert the id followed by
+          // a colon so the key is complete.
+          if (completionContext?.isKey) {
+            additionalCompletion = additionalCompletion.map((item) => {
+              const keyCompletion = { ...item }
+              keyCompletion.insertText = `${item.insertText ?? item.label}:`
+              return keyCompletion
+            })
+          }
         }
         break
       case "domains":
@@ -2838,34 +2847,79 @@ export class HomeAssistantLanguageService {
     document: TextDocument,
     textDocumentPosition: Position,
     properties: { [provider: string]: string[] }
-  ): string | null => {
-    let currentLine = textDocumentPosition.line
-    while (currentLine >= 0) {
-      const lineOffsets: number[] = getLineOffsets(document.getText())
-      const start: number = lineOffsets[currentLine]
-      const end =
-        lineOffsets[currentLine + 1] !== undefined
-          ? lineOffsets[currentLine + 1] - 1
-          : document.getText().length
-      const thisLine = document.getText().substring(start, end)
+  ): { provider: string; isKey: boolean } | null => {
+    const lines = document.getText().split("\n")
+    const cursorLine = textDocumentPosition.line
+    const cursorLineText = lines[cursorLine] ?? ""
 
-      const isOtherItemInList = thisLine.match(/-\s*([-"\w]+)?(\.)?([-"\w]+?)?\s*$/)
-      if (isOtherItemInList) {
-        currentLine -= 1
-        continue
+    const getIndent = (line: string): number => {
+      let indent = 0
+      while (indent < line.length && (line[indent] === " " || line[indent] === "\t")) {
+        indent++
       }
-      for (const key in properties) {
-        if (
-          properties[key].some((propertyName) =>
-            // eslint-disable-next-line no-useless-escape
-            new RegExp(`(.*)${propertyName}(:)([\s]*)([\w]*)(\s*)`).test(thisLine)
-          )
-        ) {
-          return key
+      return indent
+    }
+
+    const cursorIndent = getIndent(cursorLineText)
+
+    const compiledProviders: { provider: string; regex: RegExp }[] = []
+    for (const provider in properties) {
+      for (const propertyName of properties[provider]) {
+        // eslint-disable-next-line no-useless-escape
+        const regex = new RegExp(`(.*)${propertyName}(:)([\s]*)([\w]*)(\s*)`)
+        compiledProviders.push({ provider, regex })
+      }
+    }
+
+    const matchProvider = (lineText: string): string | null => {
+      for (const { provider, regex } of compiledProviders) {
+        if (regex.test(lineText)) {
+          return provider
         }
       }
       return null
     }
+
+    // Whether the cursor sits on a mapping key (entity ids used as keys)
+    // rather than on a scalar value or list item.
+    let isKey = false
+
+    for (let line = cursorLine; line >= 0; line--) {
+      const thisLine = lines[line] ?? ""
+      const trimmed = thisLine.trim()
+      const indent = getIndent(thisLine)
+
+      if (trimmed === "" || trimmed.startsWith("#")) {
+        continue
+      }
+
+      const provider = matchProvider(thisLine)
+      if (provider !== null && (line === cursorLine || indent < cursorIndent)) {
+        return { provider, isKey }
+      }
+
+      // Sequence items belong to the enclosing list; keep searching upward for
+      // the parent property header.
+      if (/^\s*-\s/.test(thisLine)) {
+        continue
+      }
+
+      if (line === cursorLine) {
+        // The cursor is on a mapping key (or a key being typed) rather than a
+        // value or list item. Note it and keep searching for the enclosing
+        // property container.
+        isKey = true
+        continue
+      }
+
+      // A non-sequence key at a shallower indentation is an ancestor that does
+      // not itself hold completions; stop here. Same-indent siblings are
+      // skipped so the walk can reach the enclosing provider above them.
+      if (indent < cursorIndent) {
+        return null
+      }
+    }
+
     return null
   }
 }
