@@ -1,21 +1,14 @@
 import * as assert from "assert"
 import { TextDocument } from "vscode-languageserver-textdocument"
-import { CompletionItem, MarkupContent, Position } from "vscode-languageserver-protocol"
+import { CompletionItem, MarkupContent } from "vscode-languageserver-protocol"
 import { HomeAssistantLanguageService } from "../../src/language-service/src/haLanguageService.js"
 import { createMockLanguageService, MockFileAccessor, MockHaConnection } from "../helpers/mocks.js"
+import { findPosition } from "../helpers/positions.js"
 
 function selectorItem(label: string, isTrigger: boolean): CompletionItem {
   const item = CompletionItem.create(label)
   item.data = isTrigger ? { isTrigger: true } : { isCondition: true }
   return item
-}
-
-function findPosition(content: string, needle: string): Position {
-  const lines = content.split("\n")
-  const lineIndex = lines.findIndex((line) => line.includes(needle))
-  assert.ok(lineIndex >= 0, `line containing "${needle}" not found`)
-  const character = lines[lineIndex].indexOf(needle) + needle.length
-  return Position.create(lineIndex, character)
 }
 
 suite("Selector Completion with Mock Data", () => {

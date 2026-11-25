@@ -2851,16 +2851,29 @@ export class HomeAssistantLanguageService {
     const lines = document.getText().split("\n")
     const cursorLine = textDocumentPosition.line
     const cursorLineText = lines[cursorLine] ?? ""
-    const cursorIndent = cursorLineText.match(/^(\s*)/)?.[1].length ?? 0
+
+    const getIndent = (line: string): number => {
+      let indent = 0
+      while (indent < line.length && (line[indent] === " " || line[indent] === "\t")) {
+        indent++
+      }
+      return indent
+    }
+
+    const cursorIndent = getIndent(cursorLineText)
+
+    const compiledProviders: { provider: string; regex: RegExp }[] = []
+    for (const provider in properties) {
+      for (const propertyName of properties[provider]) {
+        // eslint-disable-next-line no-useless-escape
+        const regex = new RegExp(`(.*)${propertyName}(:)([\s]*)([\w]*)(\s*)`)
+        compiledProviders.push({ provider, regex })
+      }
+    }
 
     const matchProvider = (lineText: string): string | null => {
-      for (const provider in properties) {
-        if (
-          properties[provider].some((propertyName) =>
-            // eslint-disable-next-line no-useless-escape
-            new RegExp(`(.*)${propertyName}(:)([\s]*)([\w]*)(\s*)`).test(lineText)
-          )
-        ) {
+      for (const { provider, regex } of compiledProviders) {
+        if (regex.test(lineText)) {
           return provider
         }
       }
@@ -2874,7 +2887,7 @@ export class HomeAssistantLanguageService {
     for (let line = cursorLine; line >= 0; line--) {
       const thisLine = lines[line] ?? ""
       const trimmed = thisLine.trim()
-      const indent = thisLine.match(/^(\s*)/)?.[1].length ?? 0
+      const indent = getIndent(thisLine)
 
       if (trimmed === "" || trimmed.startsWith("#")) {
         continue
