@@ -2899,9 +2899,10 @@ export class HomeAssistantLanguageService {
         continue
       }
 
-      // A non-sequence key at the cursor's indentation or shallower is a
-      // sibling or ancestor that does not itself hold completions; stop here.
-      if (indent <= cursorIndent) {
+      // A non-sequence key at a shallower indentation is an ancestor that does
+      // not itself hold completions; stop here. Same-indent siblings are
+      // skipped so the walk can reach the enclosing provider above them.
+      if (indent < cursorIndent) {
         return null
       }
     }

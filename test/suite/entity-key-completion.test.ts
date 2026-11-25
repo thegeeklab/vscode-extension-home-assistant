@@ -64,6 +64,32 @@ suite("Entity ID completion as mapping key", () => {
     )
   })
 
+  test("suggests entities for a key after an existing entity key block", async () => {
+    const siblingContent = [
+      "emulated_hue:",
+      "  entities:",
+      "    switch.kitchen:",
+      "      name: Kitchen Switch",
+      "    light.din"
+    ].join("\n")
+    const siblingDocument = TextDocument.create(
+      "file:///test-emulated-hue-sibling.yaml",
+      "yaml",
+      1,
+      siblingContent
+    )
+    const position = findPosition(siblingContent, "light.din")
+    const result = await languageService.onCompletion(siblingDocument, position)
+
+    const diningRoom = result.items.find((item) => item.label === "light.dining_room")
+    assert.ok(diningRoom, "should suggest light.dining_room for a sibling key")
+    assert.strictEqual(
+      diningRoom.insertText,
+      "light.dining_room:",
+      "should insert a trailing colon for a sibling key"
+    )
+  })
+
   test("does not suggest entities for a nested option key", async () => {
     const position = findPosition(content, "name")
     const result = await languageService.onCompletion(document, position)
